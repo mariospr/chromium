@@ -32,10 +32,10 @@
 #include "chrome/browser/signin/account_consistency_mode_manager.h"
 #include "chrome/browser/signin/account_tracker_service_factory.h"
 #include "chrome/browser/signin/chrome_device_id_helper.h"
+#include "chrome/browser/signin/identity_manager_factory.h"
 #include "chrome/browser/signin/local_auth.h"
 #include "chrome/browser/signin/profile_oauth2_token_service_factory.h"
 #include "chrome/browser/signin/signin_error_controller_factory.h"
-#include "chrome/browser/signin/signin_manager_factory.h"
 #include "chrome/browser/signin/signin_promo.h"
 #include "chrome/browser/signin/signin_util.h"
 #include "chrome/browser/sync/profile_sync_service_factory.h"
@@ -72,6 +72,7 @@
 #include "google_apis/gaia/gaia_constants.h"
 #include "google_apis/gaia/gaia_urls.h"
 #include "net/base/url_util.h"
+#include "services/identity/public/cpp/identity_manager.h"
 #include "ui/base/l10n/l10n_util.h"
 
 namespace {
@@ -233,9 +234,9 @@ void InlineSigninHelper::OnClientOAuthSuccessAndBrowserOpened(
   signin_metrics::Reason reason =
       signin::GetSigninReasonForPromoURL(current_url_);
 
-  SigninManager* signin_manager = SigninManagerFactory::GetForProfile(profile_);
-  std::string primary_email =
-      signin_manager->GetAuthenticatedAccountInfo().email;
+  identity::IdentityManager* identity_manager =
+      IdentityManagerFactory::GetForProfile(profile_);
+  std::string primary_email = identity_manager->GetPrimaryAccountInfo().email;
   if (gaia::AreEmailsSame(email_, primary_email) &&
       (reason == signin_metrics::Reason::REASON_REAUTHENTICATION ||
        reason == signin_metrics::Reason::REASON_UNLOCK) &&
@@ -274,10 +275,12 @@ void InlineSigninHelper::OnClientOAuthSuccessAndBrowserOpened(
                                     show_account_management));
     }
 
-    if (reason == signin_metrics::Reason::REASON_REAUTHENTICATION ||
-        reason == signin_metrics::Reason::REASON_UNLOCK) {
-      signin_manager->MergeSigninCredentialIntoCookieJar();
-    }
+    // TODO((https://crbug.com/889902): Need to migrate SigninManager's
+    // MergeSigninCredentialIntoCookieJar before migrating this part.
+    // if (reason == signin_metrics::Reason::REASON_REAUTHENTICATION ||
+    //     reason == signin_metrics::Reason::REASON_UNLOCK) {
+    //   signin_manager->MergeSigninCredentialIntoCookieJar();
+    // }
     LogSigninReason(reason);
   } else {
     browser_sync::ProfileSyncService* sync_service =
@@ -645,8 +648,8 @@ void InlineLoginHandlerImpl::FinishCompleteLogin(
     case signin_metrics::Reason::REASON_REAUTHENTICATION:
     case signin_metrics::Reason::REASON_UNLOCK: {
       std::string primary_username =
-          SigninManagerFactory::GetForProfile(profile)
-              ->GetAuthenticatedAccountInfo()
+          IdentityManagerFactory::GetForProfile(profile)
+              ->GetPrimaryAccountInfo()
               .email;
       if (!gaia::AreEmailsSame(default_email, primary_username))
         can_offer_for = CAN_OFFER_SIGNIN_FOR_SECONDARY_ACCOUNT;
