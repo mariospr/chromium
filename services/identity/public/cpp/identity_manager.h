@@ -127,6 +127,13 @@ class IdentityManager : public SigninManagerBase::Observer,
   // account.
   AccountInfo GetPrimaryAccountInfo() const;
 
+  // Provides access to the account ID of the latest cached information for the
+  // user's primary account. Note that this is not equivalent to obtaining an
+  // AccountInfo with GetPrimaryAccountInfo() and then accessing the account_id
+  // member, since you will still receive a valid account ID after having
+  // removed the primary account without signing out.
+  const std::string& GetPrimaryAccountId() const;
+
   // Returns whether the primary account is available, according to the latest
   // cached information. Simple convenience wrapper over checking whether the
   // primary account info has a valid account ID.
