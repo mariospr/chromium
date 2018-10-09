@@ -17,6 +17,8 @@
 #include "components/signin/core/browser/test_signin_client.h"
 #include "components/sync_preferences/testing_pref_service_syncable.h"
 #include "google_apis/gaia/oauth2_access_token_consumer.h"
+#include "services/network/public/cpp/weak_wrapper_shared_url_loader_factory.h"
+#include "services/network/test/test_url_loader_factory.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -80,6 +82,17 @@ class AccessTokenFetcherTest : public testing::Test,
                                                 std::move(callback), mode);
   }
 
+  std::unique_ptr<AccessTokenFetcher> CreateFetcherWithURLLoaderFactory(
+      const std::string& account_id,
+      scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
+      AccessTokenFetcher::TokenCallback callback,
+      AccessTokenFetcher::Mode mode) {
+    std::set<std::string> scopes{"scope"};
+    return std::make_unique<AccessTokenFetcher>(
+        account_id, "test_consumer", &token_service_, url_loader_factory,
+        scopes, std::move(callback), mode);
+  }
+
   AccountTrackerService* account_tracker() { return account_tracker_.get(); }
 
   FakeProfileOAuth2TokenService* token_service() { return &token_service_; }
@@ -107,7 +120,6 @@ class AccessTokenFetcherTest : public testing::Test,
   TestSigninClient signin_client_;
   FakeProfileOAuth2TokenService token_service_;
   AccessTokenInfo access_token_info_;
-
   std::unique_ptr<AccountTrackerService> account_tracker_;
   base::OnceClosure on_access_token_request_callback_;
 };
@@ -515,6 +527,47 @@ TEST_F(AccessTokenFetcherTest,
           access_token_info().id_token));
 
   run_loop4.Run();
+}
+
+TEST_F(AccessTokenFetcherTest, FetcherWithCustomURLLoaderFactory) {
+  base::RunLoop run_loop;
+  set_on_access_token_request_callback(run_loop.QuitClosure());
+
+  std::string account_id = AddAccount(kTestGaiaId, kTestEmail);
+  token_service()->UpdateCredentials(account_id, "refresh token");
+
+  network::TestURLLoaderFactory test_url_loader_factory;
+  scoped_refptr<network::SharedURLLoaderFactory> test_shared_url_loader_factory(
+      base::MakeRefCounted<network::WeakWrapperSharedURLLoaderFactory>(
+          &test_url_loader_factory));
+
+  // This should result in a request for an access token.
+  TestTokenCallback callback;
+  auto fetcher = CreateFetcherWithURLLoaderFactory(
+      account_id, test_shared_url_loader_factory, callback.Get(),
+      AccessTokenFetcher::Mode::kImmediate);
+
+  run_loop.Run();
+
+  // The URLLoaderFactory present in the pending request should match
+  // the one we specified when creating the AccessTokenFetcher.
+  std::vector<FakeProfileOAuth2TokenService::PendingRequest> pending_requests =
+      token_service()->GetPendingRequests();
+
+  EXPECT_EQ(pending_requests.size(), 1U);
+  EXPECT_EQ(pending_requests[0].url_loader_factory,
+            test_shared_url_loader_factory);
+
+  // Once the access token request is fulfilled, we should get called back
+  // with the access token.
+  EXPECT_CALL(callback, Run(GoogleServiceAuthError::AuthErrorNone(),
+                            access_token_info()));
+
+  token_service()->IssueAllTokensForAccount(
+      account_id,
+      OAuth2AccessTokenConsumer::TokenResponse(
+          access_token_info().token, access_token_info().expiration_time,
+          access_token_info().id_token));
 }
 
 }  // namespace identity
