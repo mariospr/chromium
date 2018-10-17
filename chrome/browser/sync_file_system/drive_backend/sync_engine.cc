@@ -246,6 +246,8 @@ SyncEngine::~SyncEngine() {
   content::GetNetworkConnectionTracker()->RemoveNetworkConnectionObserver(this);
   if (signin_manager_)
     signin_manager_->RemoveObserver(this);
+  if (identity_manager_)
+    identity_manager_->RemoveObserver(this);
   if (notification_manager_)
     notification_manager_->RemoveObserver(this);
 }
@@ -271,6 +273,8 @@ void SyncEngine::Initialize() {
   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
   Reset();
 
+  // TODO: Migrate to IdentityManager once this class has been migrated away
+  // from the SigninManager and sync_file_system_browsertest.cc is updated.
   if (!signin_manager_ || !signin_manager_->IsAuthenticated())
     return;
 
@@ -311,6 +315,9 @@ void SyncEngine::InitializeInternal(
   drive_service_wrapper_.reset(new DriveServiceWrapper(drive_service_.get()));
 
   std::string account_id;
+
+  // TODO: Migrate to IdentityManager once this class has been migrated away
+  // from the SigninManager and sync_file_system_browsertest.cc is updated.
   if (signin_manager_)
     account_id = signin_manager_->GetAuthenticatedAccountId();
   drive_service_->Initialize(account_id);
@@ -386,6 +393,8 @@ void SyncEngine::RegisterOrigin(const GURL& origin,
   if (!sync_worker_) {
     // TODO(tzik): Record |origin| and retry the registration after late
     // sign-in.  Then, return SYNC_STATUS_OK.
+    // TODO: Migrate to IdentityManager once this class has been migrated away
+    // from the SigninManager and sync_file_system_browsertest.cc is updated.
     if (!signin_manager_ || !signin_manager_->IsAuthenticated())
       callback.Run(SYNC_STATUS_AUTHENTICATION_FAILED);
     else
@@ -706,19 +715,19 @@ void SyncEngine::OnConnectionChanged(network::mojom::ConnectionType type) {
   }
 }
 
+// TODO: Remove once this class has been fully migrated to IdentityManager.
 void SyncEngine::GoogleSigninFailed(const GoogleServiceAuthError& error) {
   Reset();
   UpdateServiceState(REMOTE_SERVICE_AUTHENTICATION_REQUIRED,
                      "Failed to sign in.");
 }
 
-void SyncEngine::GoogleSigninSucceeded(const std::string& account_id,
-                                       const std::string& username) {
+void SyncEngine::OnPrimaryAccountSet(const AccountInfo& primary_account_info) {
   Initialize();
 }
 
-void SyncEngine::GoogleSignedOut(const std::string& account_id,
-                                 const std::string& username) {
+void SyncEngine::OnPrimaryAccountCleared(
+    const AccountInfo& previous_primary_account_info) {
   Reset();
   UpdateServiceState(REMOTE_SERVICE_AUTHENTICATION_REQUIRED,
                      "User signed out.");
@@ -760,6 +769,8 @@ SyncEngine::SyncEngine(
     notification_manager_->AddObserver(this);
   if (signin_manager_)
     signin_manager_->AddObserver(this);
+  if (identity_manager_)
+    identity_manager_->AddObserver(this);
   content::GetNetworkConnectionTracker()->AddNetworkConnectionObserver(this);
 }
 
