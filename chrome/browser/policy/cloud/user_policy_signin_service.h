@@ -12,12 +12,10 @@
 #include "base/macros.h"
 #include "base/memory/ref_counted.h"
 #include "chrome/browser/policy/cloud/user_policy_signin_service_base.h"
-#include "google_apis/gaia/oauth2_token_service.h"
 #include "services/identity/public/cpp/identity_manager.h"
 
 class AccountId;
 class Profile;
-class ProfileOAuth2TokenService;
 
 namespace network {
 class SharedURLLoaderFactory;
@@ -39,8 +37,7 @@ class UserPolicySigninService : public UserPolicySigninServiceBase {
       DeviceManagementService* device_management_service,
       UserCloudPolicyManager* policy_manager,
       identity::IdentityManager* identity_manager,
-      scoped_refptr<network::SharedURLLoaderFactory> system_url_loader_factory,
-      ProfileOAuth2TokenService* oauth2_token_service);
+      scoped_refptr<network::SharedURLLoaderFactory> system_url_loader_factory);
   ~UserPolicySigninService() override;
 
   // Registers a CloudPolicyClient for fetching policy for a user. The
@@ -107,10 +104,6 @@ class UserPolicySigninService : public UserPolicySigninServiceBase {
   Profile* profile_;
 
   std::unique_ptr<CloudPolicyClientRegistrationHelper> registration_helper_;
-
-  // Weak pointer to the token service we use to authenticate during
-  // CloudPolicyClient registration.
-  ProfileOAuth2TokenService* oauth2_token_service_;
 
   DISALLOW_COPY_AND_ASSIGN(UserPolicySigninService);
 };

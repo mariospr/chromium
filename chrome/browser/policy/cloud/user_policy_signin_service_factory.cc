@@ -45,7 +45,6 @@ UserPolicySigninServiceFactory::UserPolicySigninServiceFactory()
     : BrowserContextKeyedServiceFactory(
         "UserPolicySigninService",
         BrowserContextDependencyManager::GetInstance()) {
-  DependsOn(ProfileOAuth2TokenServiceFactory::GetInstance());
   DependsOn(IdentityManagerFactory::GetInstance());
   DependsOn(UserCloudPolicyManagerFactory::GetInstance());
 }
@@ -98,8 +97,7 @@ KeyedService* UserPolicySigninServiceFactory::BuildServiceInstanceFor(
       profile, g_browser_process->local_state(), device_management_service,
       UserCloudPolicyManagerFactory::GetForBrowserContext(context),
       IdentityManagerFactory::GetForProfile(profile),
-      std::move(system_url_loader_factory),
-      ProfileOAuth2TokenServiceFactory::GetForProfile(profile));
+      std::move(system_url_loader_factory));
   return service;
 }
 
