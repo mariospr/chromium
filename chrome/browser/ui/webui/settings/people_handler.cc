@@ -63,12 +63,10 @@
 
 #if defined(OS_CHROMEOS)
 #include "chrome/browser/chromeos/login/quick_unlock/pin_backend.h"
-#include "components/signin/core/browser/signin_manager_base.h"
 #else
 #include "chrome/browser/signin/signin_util.h"
 #include "chrome/browser/ui/user_manager.h"
 #include "chrome/browser/ui/webui/profile_helper.h"
-#include "components/signin/core/browser/signin_manager.h"
 #endif
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
 #include "chrome/browser/profiles/profile_avatar_icon_util.h"
@@ -361,17 +359,19 @@ void PeopleHandler::DisplayGaiaLoginInNewTabOrWindow(
   if (service && service->HasUnrecoverableError()) {
     // When the user has an unrecoverable error, they first have to sign out and
     // then sign in again.
-    SigninManagerFactory::GetForProfile(browser->profile())
-        ->SignOut(signin_metrics::USER_CLICKED_SIGNOUT_SETTINGS,
-                  signin_metrics::SignoutDelete::IGNORE_METRIC);
+    IdentityManagerFactory::GetForProfile(browser->profile())
+        ->ClearPrimaryAccount(
+            identity::IdentityManager::ClearAccountTokensAction::kDefault,
+            signin_metrics::USER_CLICKED_SIGNOUT_SETTINGS,
+            signin_metrics::SignoutDelete::IGNORE_METRIC);
   }
 
   // If the signin manager already has an authenticated username, this is a
   // re-auth scenario, and we need to ensure that the user signs in with the
   // same email address.
   GURL url;
-  if (SigninManagerFactory::GetForProfile(browser->profile())
-          ->IsAuthenticated()) {
+  if (IdentityManagerFactory::GetForProfile(browser->profile())
+          ->HasPrimaryAccount()) {
     UMA_HISTOGRAM_ENUMERATION("Signin.Reauth",
                               signin_metrics::HISTOGRAM_REAUTH_SHOWN,
                               signin_metrics::HISTOGRAM_REAUTH_MAX);
@@ -551,8 +551,8 @@ std::unique_ptr<base::ListValue> PeopleHandler::GetStoredAccountsList() {
   } else {
     // If dice is disabled (and unified consent enabled), show only the primary
     // account.
-    std::string primary_account = SigninManagerFactory::GetForProfile(profile_)
-                                      ->GetAuthenticatedAccountId();
+    std::string primary_account =
+        IdentityManagerFactory::GetForProfile(profile_)->GetPrimaryAccountId();
     if (!primary_account.empty()) {
       accounts_list->GetList().push_back(GetAccountValue(
           account_tracker->GetAccountInfo(primary_account), account_tracker));
@@ -687,7 +687,7 @@ void PeopleHandler::HandleShowSetupUI(const base::ListValue* args) {
   // This if-statement is not using IsProfileAuthNeededOrHasErrors(), because
   // in some error cases (e.g. "confirmSyncSettings") the UI still needs to
   // show.
-  if (!SigninManagerFactory::GetForProfile(profile_)->IsAuthenticated()) {
+  if (!IdentityManagerFactory::GetForProfile(profile_)->HasPrimaryAccount()) {
     // For web-based signin, the signin page is not displayed in an overlay
     // on the settings page. So if we get here, it must be due to the user
     // cancelling signin (by reloading the sync settings page during initial
@@ -782,16 +782,17 @@ void PeopleHandler::HandleSignout(const base::ListValue* args) {
     // If the user cannot signout, the profile must be destroyed.
     DCHECK(delete_profile);
   } else {
-    SigninManager* signin_manager =
-        SigninManagerFactory::GetForProfile(profile_);
-    if (signin_manager->IsAuthenticated()) {
+    identity::IdentityManager* identity_manager =
+        IdentityManagerFactory::GetForProfile(profile_);
+    if (identity_manager->HasPrimaryAccount()) {
       if (GetSyncService())
         ProfileSyncService::SyncEvent(ProfileSyncService::STOP_FROM_OPTIONS);
 
       signin_metrics::SignoutDelete delete_metric =
           delete_profile ? signin_metrics::SignoutDelete::DELETED
                          : signin_metrics::SignoutDelete::KEEPING;
-      signin_manager->SignOutAndRemoveAllAccounts(
+      identity_manager->ClearPrimaryAccount(
+          identity::IdentityManager::ClearAccountTokensAction::kRemoveAll,
           signin_metrics::USER_CLICKED_SIGNOUT_SETTINGS, delete_metric);
     } else {
       DCHECK(!delete_profile)
@@ -874,9 +875,12 @@ void PeopleHandler::CloseSyncSetup() {
           // Sign out the user on desktop Chrome if they click cancel during
           // initial setup.
           if (sync_service->IsFirstSetupInProgress()) {
-            SigninManagerFactory::GetForProfile(profile_)
-                ->SignOut(signin_metrics::ABORT_SIGNIN,
-                          signin_metrics::SignoutDelete::IGNORE_METRIC);
+            IdentityManagerFactory::GetForProfile(profile_)
+                ->ClearPrimaryAccount(
+                    identity::IdentityManager::ClearAccountTokensAction::
+                        kDefault,
+                    signin_metrics::ABORT_SIGNIN,
+                    signin_metrics::SignoutDelete::IGNORE_METRIC);
           }
 #endif
         }
@@ -949,12 +953,13 @@ PeopleHandler::GetSyncStatusDictionary() {
   sync_status->SetBoolean("supervisedUser", profile_->IsSupervised());
   sync_status->SetBoolean("childUser", profile_->IsChild());
 
-  SigninManagerBase* signin = SigninManagerFactory::GetForProfile(profile_);
-  DCHECK(signin);
+  identity::IdentityManager* identity_manager =
+      IdentityManagerFactory::GetForProfile(profile_);
+  DCHECK(identity_manager);
 #if !defined(OS_CHROMEOS)
   // Signout is not allowed if the user has policy (crbug.com/172204).
   if (!signin_util::IsUserSignoutAllowedForProfile(profile_)) {
-    std::string username = signin->GetAuthenticatedAccountInfo().email;
+    std::string username = identity_manager->GetPrimaryAccountInfo().email;
 
     // If there is no one logged in or if the profile name is empty then the
     // domain name is empty. This happens in browser tests.
@@ -971,20 +976,23 @@ PeopleHandler::GetSyncStatusDictionary() {
   bool disallowed_by_policy =
       service && service->HasDisableReason(
                      syncer::SyncService::DISABLE_REASON_ENTERPRISE_POLICY);
-  sync_status->SetBoolean("signinAllowed", signin->IsSigninAllowed());
+  // TODO(http://crbug.com/889863): Need to implement IsSigninAllowed
+  // sync_status->SetBoolean("signinAllowed", signin->IsSigninAllowed());
   sync_status->SetBoolean("syncSystemEnabled", (service != nullptr));
   sync_status->SetBoolean("setupInProgress",
                           service && !disallowed_by_policy &&
                               service->IsFirstSetupInProgress() &&
-                              signin->IsAuthenticated());
+                              identity_manager->HasPrimaryAccount());
 
   base::string16 status_label;
   base::string16 link_label;
   sync_ui_util::ActionType action_type = sync_ui_util::NO_ACTION;
+
+  // TODO(http://crbug.com/890796): Needs to migrate sync_ui_util
   bool status_has_error =
-      sync_ui_util::GetStatusLabels(profile_, service, *signin, &status_label,
-                                    &link_label,
-                                    &action_type) == sync_ui_util::SYNC_ERROR;
+      sync_ui_util::GetStatusLabels(
+          profile_, service, *SigninManagerFactory::GetForProfile(profile_),
+          &status_label, &link_label, &action_type) == sync_ui_util::SYNC_ERROR;
   sync_status->SetString("statusText", status_label);
   sync_status->SetString("statusActionText", link_label);
   sync_status->SetBoolean("hasError", status_has_error);
@@ -994,9 +1002,10 @@ PeopleHandler::GetSyncStatusDictionary() {
   sync_status->SetBoolean(
       "disabled", !service || disallowed_by_policy ||
                       !service->GetUserSettings()->IsSyncAllowedByPlatform());
-  sync_status->SetBoolean("signedIn", signin->IsAuthenticated());
-  sync_status->SetString("signedInUsername",
-                         signin_ui_util::GetAuthenticatedUsername(signin));
+  sync_status->SetBoolean("signedIn", identity_manager->HasPrimaryAccount());
+  // TODO(http://crbug.com/890794): Needs to migrate sign_ui_util
+  // sync_status->SetString("signedInUsername",
+  //                        signin_ui_util::GetAuthenticatedUsername(signin));
   sync_status->SetBoolean("hasUnrecoverableError",
                           service && service->HasUnrecoverableError());
   return sync_status;
@@ -1140,7 +1149,8 @@ void PeopleHandler::MarkFirstSetupComplete() {
 }
 
 bool PeopleHandler::IsProfileAuthNeededOrHasErrors() {
-  return !SigninManagerFactory::GetForProfile(profile_)->IsAuthenticated() ||
+  return !IdentityManagerFactory::GetForProfile(profile_)
+              ->HasPrimaryAccount() ||
          SigninErrorControllerFactory::GetForProfile(profile_)->HasError();
 }
 
