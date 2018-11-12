@@ -38,8 +38,8 @@
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/signin/account_consistency_mode_manager.h"
 #include "chrome/browser/signin/gaia_cookie_manager_service_factory.h"
+#include "chrome/browser/signin/identity_manager_factory.h"
 #include "chrome/browser/signin/profile_oauth2_token_service_factory.h"
-#include "chrome/browser/signin/signin_manager_factory.h"
 #include "chrome/browser/ui/browser_finder.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/chrome_pages.h"
@@ -66,7 +66,6 @@
 #include "components/signin/core/browser/account_consistency_method.h"
 #include "components/signin/core/browser/gaia_cookie_manager_service.h"
 #include "components/signin/core/browser/profile_oauth2_token_service.h"
-#include "components/signin/core/browser/signin_manager.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
@@ -78,6 +77,8 @@
 #include "printing/backend/print_backend_consts.h"
 #include "printing/buildflags/buildflags.h"
 #include "printing/print_settings.h"
+#include "services/identity/public/cpp/identity_manager.h"
+#include "services/identity/public/cpp/primary_account_access_token_fetcher.h"
 #include "third_party/icu/source/i18n/unicode/ulocdata.h"
 
 #if defined(OS_CHROMEOS)
@@ -468,33 +469,31 @@ class PrintPreviewHandler::AccessTokenService
   }
 
   void RequestToken(const std::string& type, const std::string& callback_id) {
-    if (requests_.find(type) != requests_.end()) {
+    if (request_fetchers.find(type) != request_fetchers.end()) {
       NOTREACHED();  // Should never happen, see cloud_print_interface.js
       return;
     }
 
-    OAuth2TokenService* service = nullptr;
+    Profile* profile = Profile::FromWebUI(handler_->web_ui());
+    if (profile) {
+      identity_manager_.reset(IdentityManagerFactory::GetForProfile(profile));
+    } else {
+      identity_manager_.reset();
+    }
+
     std::string account_id;
-    if (type == "profile") {
-      Profile* profile = Profile::FromWebUI(handler_->web_ui());
-      if (profile) {
-        ProfileOAuth2TokenService* token_service =
-            ProfileOAuth2TokenServiceFactory::GetForProfile(profile);
-        SigninManagerBase* signin_manager =
-            SigninManagerFactory::GetInstance()->GetForProfile(profile);
-        account_id = signin_manager->GetAuthenticatedAccountId();
-        service = token_service;
-      }
+  if (type == "profile") {
+      if (identity_manager_)
+        account_id = identity_manager->GetPrimaryAccountId();
     } else if (type == "device") {
 #if defined(OS_CHROMEOS)
       chromeos::DeviceOAuth2TokenService* token_service =
           chromeos::DeviceOAuth2TokenServiceFactory::Get();
       account_id = token_service->GetRobotAccountId();
-      service = token_service;
 #endif
     }
 
-    if (!service) {
+    if (!identity_manager) {
       // Unknown type.
       handler_->SendAccessToken(callback_id, std::string());
       return;
@@ -502,9 +501,16 @@ class PrintPreviewHandler::AccessTokenService
 
     OAuth2TokenService::ScopeSet oauth_scopes;
     oauth_scopes.insert(cloud_devices::kCloudPrintAuthScope);
-    requests_[type].request =
-        service->StartRequest(account_id, oauth_scopes, this);
-    requests_[type].callback_id = callback_id;
+
+    request_fetchers[type].fetcher =
+    std::make_unique<identity::PrimaryAccountAccessTokenFetcher>(
+          "print_preview_handler", identity_manager, scopes,
+          base::BindOnce(
+              &AdvancedProtectionStatusManager::OnAccessTokenFetchComplete,
+              base::Unretained(this), primary_account_id),
+          identity::PrimaryAccountAccessTokenFetcher::Mode::kImmediate);
+       service->StartRequest(account_id, oauth_scopes, this);
+    request_fetchers[type].callback_id = callback_id;
   }
 
   void OnGetTokenSuccess(
@@ -521,11 +527,11 @@ class PrintPreviewHandler::AccessTokenService
  private:
   void OnServiceResponse(const OAuth2TokenService::Request* request,
                          const std::string& access_token) {
-    for (auto it = requests_.begin(); it != requests_.end(); ++it) {
+    for (auto it = request_fetchers.begin(); it != request_fetchers.end(); ++it) {
       auto& entry = it->second;
       if (entry.request.get() == request) {
         handler_->SendAccessToken(entry.callback_id, access_token);
-        requests_.erase(it);
+        request_fetchers.erase(it);
         return;
       }
     }
@@ -533,11 +539,14 @@ class PrintPreviewHandler::AccessTokenService
   }
 
   struct Request {
-    std::unique_ptr<OAuth2TokenService::Request> request;
+    std::unique_ptr<identity::PrimaryAccountAccessTokenFetcher> fetcher;
     std::string callback_id;
   };
-  // Maps types to Requests.
-  base::flat_map<std::string, Request> requests_;
+
+  identity::IdentityManager* identity_manager_;
+
+  // Maps types to request fetchers.
+  base::flat_map<std::string, Request> request_fetchers;
 
   PrintPreviewHandler* const handler_;
 
