@@ -281,6 +281,11 @@ class IdentityManager : public SigninManagerBase::Observer,
   friend chromeos::ChromeSessionManager;
   friend chromeos::UserSessionManager;
 
+  // TODO: Document
+  SigninManagerBase* GetSigninManager();
+  ProfileOAuth2TokenService* GetTokenService();
+  AccountTrackerService* GetAccountTrackedService();
+
   // Sets the primary account info synchronously with both the IdentityManager
   // and its backing SigninManager/ProfileOAuth2TokenService instances.
   // Prefer using the methods in identity_test_{environment, utils}.h to using
