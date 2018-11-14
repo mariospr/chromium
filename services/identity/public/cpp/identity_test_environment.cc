@@ -387,7 +387,7 @@ void IdentityTestEnvironment::WaitForAccessTokenRequestIfNecessary(
 
 void IdentityTestEnvironment::UpdateAccountInfoForAccount(
     AccountInfo account_info) {
-  identity::UpdateAccountInfoForAccount(account_tracker_service_, account_info);
+  identity::UpdateAccountInfoForAccount(identity_manager(), account_info);
 }
 
 }  // namespace identity

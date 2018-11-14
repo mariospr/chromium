@@ -292,6 +292,8 @@ class IdentityManager : public SigninManagerBase::Observer,
       const std::string& account_id);
   friend void RemoveRefreshTokenForAccount(IdentityManager* identity_manager,
                                            const std::string& account_id);
+  friend void UpdateAccountInfoForAccount(IdentityManager* identity_manager,
+                                          AccountInfo account_info);
 
   friend MultiProfileDownloadNotificationTest;
   friend file_manager::MultiProfileFilesAppBrowserTest;

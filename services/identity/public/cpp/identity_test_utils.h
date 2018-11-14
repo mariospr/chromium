@@ -133,7 +133,7 @@ void SetCookieAccounts(FakeGaiaCookieManagerService* cookie_manager,
 
 // Updates the info for |account_info.account_id|, which must be a known
 // account.
-void UpdateAccountInfoForAccount(AccountTrackerService* account_tracker_service,
+void UpdateAccountInfoForAccount(IdentityManager* identity_manager,
                                  AccountInfo account_info);
 
 }  // namespace identity
