@@ -142,8 +142,6 @@ IN_PROC_BROWSER_TEST_F(ExtensionInstalledBubbleBrowserTest,
                        DISABLED_InvokeUi_NoAction) {
   // Sign in to supppress the signin promo.
   identity::MakePrimaryAccountAvailable(
-      SigninManagerFactory::GetForProfile(profile()),
-      ProfileOAuth2TokenServiceFactory::GetForProfile(profile()),
       IdentityManagerFactory::GetForProfile(profile()), "test@example.com");
   ShowAndVerifyUi();
 }

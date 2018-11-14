@@ -160,7 +160,6 @@ bool ProfileSyncServiceHarness::SignInPrimaryAccount() {
       } else {
         // Authenticate sync client using GAIA credentials.
         identity::MakePrimaryAccountAvailable(
-            SigninManagerFactory::GetForProfile(profile_), token_service,
             identity_manager, username_);
       }
       return true;

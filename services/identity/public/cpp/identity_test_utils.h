@@ -89,8 +89,6 @@ void RemoveRefreshTokenForPrimaryAccount(
 // newly-available account.
 // NOTE: See disclaimer at top of file re: direct usage.
 AccountInfo MakePrimaryAccountAvailable(
-    SigninManagerBase* signin_manager,
-    ProfileOAuth2TokenService* token_service,
     IdentityManager* identity_manager,
     const std::string& email);
 

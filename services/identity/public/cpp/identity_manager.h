@@ -272,6 +272,12 @@ class IdentityManager : public SigninManagerBase::Observer,
   friend AccountInfo SetPrimaryAccount(SigninManagerBase* signin_manager,
                                        IdentityManager* identity_manager,
                                        const std::string& email);
+
+  // These clients need to use the private getters below.
+  friend AccountInfo MakePrimaryAccountAvailable(
+      IdentityManager* identity_manager,
+      const std::string& email);
+
   friend MultiProfileDownloadNotificationTest;
   friend file_manager::MultiProfileFilesAppBrowserTest;
 

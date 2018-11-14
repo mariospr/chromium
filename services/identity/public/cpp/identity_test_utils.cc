@@ -198,13 +198,12 @@ void RemoveRefreshTokenForPrimaryAccount(
 }
 
 AccountInfo MakePrimaryAccountAvailable(
-    SigninManagerBase* signin_manager,
-    ProfileOAuth2TokenService* token_service,
     IdentityManager* identity_manager,
     const std::string& email) {
-  AccountInfo account_info =
-      SetPrimaryAccount(signin_manager, identity_manager, email);
-  SetRefreshTokenForPrimaryAccount(token_service, identity_manager);
+  AccountInfo account_info = SetPrimaryAccount(
+      identity_manager->GetSigninManager(), identity_manager, email);
+  SetRefreshTokenForPrimaryAccount(identity_manager->GetTokenService(),
+                                   identity_manager);
   return account_info;
 }
 

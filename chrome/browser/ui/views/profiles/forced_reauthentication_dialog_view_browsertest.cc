@@ -27,10 +27,7 @@ class ForcedReauthenticationDialogViewBrowserTest : public DialogBrowserTest {
     identity::IdentityManager* manager =
         IdentityManagerFactory::GetForProfile(profile);
 
-    identity::MakePrimaryAccountAvailable(
-        SigninManagerFactory::GetForProfile(profile),
-        ProfileOAuth2TokenServiceFactory::GetForProfile(profile), manager,
-        "test@xyz.com");
+    identity::MakePrimaryAccountAvailable(manager, "test@xyz.com");
 
     ForcedReauthenticationDialogView::ShowDialog(
         profile, manager, base::TimeDelta::FromSeconds(60));
