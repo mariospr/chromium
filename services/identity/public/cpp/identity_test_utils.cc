@@ -127,11 +127,13 @@ void UpdateRefreshTokenForAccount(ProfileOAuth2TokenService* token_service,
 
 }  // namespace
 
-AccountInfo SetPrimaryAccount(SigninManagerBase* signin_manager,
-                              IdentityManager* identity_manager,
+AccountInfo SetPrimaryAccount(IdentityManager* identity_manager,
                               const std::string& email) {
-  DCHECK(!signin_manager->IsAuthenticated());
   DCHECK(!identity_manager->HasPrimaryAccount());
+
+  SigninManagerBase* signin_manager = identity_manager->GetSigninManager();
+  DCHECK(!signin_manager->IsAuthenticated());
+
   std::string gaia_id = "gaia_id_for_" + email;
 
 #if defined(OS_CHROMEOS)
@@ -168,13 +170,12 @@ AccountInfo SetPrimaryAccount(SigninManagerBase* signin_manager,
   return identity_manager->GetPrimaryAccountInfo();
 }
 
-void SetRefreshTokenForPrimaryAccount(ProfileOAuth2TokenService* token_service,
-                                      IdentityManager* identity_manager) {
+void SetRefreshTokenForPrimaryAccount(IdentityManager* identity_manager) {
   DCHECK(identity_manager->HasPrimaryAccount());
   std::string account_id = identity_manager->GetPrimaryAccountId();
 
   std::string refresh_token = "refresh_token_for_" + account_id;
-  SetRefreshTokenForAccount(token_service, identity_manager, account_id);
+  SetRefreshTokenForAccount(identity_manager, account_id);
 }
 
 void SetInvalidRefreshTokenForPrimaryAccount(
@@ -200,10 +201,8 @@ void RemoveRefreshTokenForPrimaryAccount(
 AccountInfo MakePrimaryAccountAvailable(
     IdentityManager* identity_manager,
     const std::string& email) {
-  AccountInfo account_info = SetPrimaryAccount(
-      identity_manager->GetSigninManager(), identity_manager, email);
-  SetRefreshTokenForPrimaryAccount(identity_manager->GetTokenService(),
-                                   identity_manager);
+  AccountInfo account_info = SetPrimaryAccount(identity_manager, email);
+  SetRefreshTokenForPrimaryAccount(identity_manager);
   return account_info;
 }
 
@@ -263,18 +262,16 @@ AccountInfo MakeAccountAvailable(AccountTrackerService* account_tracker_service,
       account_tracker_service->FindAccountInfoByEmail(email);
   DCHECK(!account_info.account_id.empty());
 
-  SetRefreshTokenForAccount(token_service, identity_manager,
-                            account_info.account_id);
+  SetRefreshTokenForAccount(identity_manager, account_info.account_id);
 
   return account_info;
 }
 
-void SetRefreshTokenForAccount(ProfileOAuth2TokenService* token_service,
-                               IdentityManager* identity_manager,
+void SetRefreshTokenForAccount(IdentityManager* identity_manager,
                                const std::string& account_id) {
   std::string refresh_token = "refresh_token_for_" + account_id;
-  UpdateRefreshTokenForAccount(token_service, identity_manager, account_id,
-                               refresh_token);
+  UpdateRefreshTokenForAccount(identity_manager->GetTokenService(),
+                               identity_manager, account_id, refresh_token);
 }
 
 void SetInvalidRefreshTokenForAccount(ProfileOAuth2TokenService* token_service,

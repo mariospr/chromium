@@ -207,13 +207,11 @@ IdentityManager* IdentityTestEnvironment::identity_manager() {
 
 AccountInfo IdentityTestEnvironment::SetPrimaryAccount(
     const std::string& email) {
-  return identity::SetPrimaryAccount(signin_manager_, identity_manager(),
-                                     email);
+  return identity::SetPrimaryAccount(identity_manager(), email);
 }
 
 void IdentityTestEnvironment::SetRefreshTokenForPrimaryAccount() {
-  identity::SetRefreshTokenForPrimaryAccount(token_service_,
-                                             identity_manager());
+  identity::SetRefreshTokenForPrimaryAccount(identity_manager());
 }
 
 void IdentityTestEnvironment::SetInvalidRefreshTokenForPrimaryAccount() {
@@ -244,8 +242,7 @@ AccountInfo IdentityTestEnvironment::MakeAccountAvailable(
 
 void IdentityTestEnvironment::SetRefreshTokenForAccount(
     const std::string& account_id) {
-  return identity::SetRefreshTokenForAccount(token_service_, identity_manager(),
-                                             account_id);
+  return identity::SetRefreshTokenForAccount(identity_manager(), account_id);
 }
 
 void IdentityTestEnvironment::SetInvalidRefreshTokenForAccount(

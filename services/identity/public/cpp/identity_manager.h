@@ -269,14 +269,19 @@ class IdentityManager : public SigninManagerBase::Observer,
 
  private:
   // These clients need to call SetPrimaryAccountSynchronouslyForTests().
-  friend AccountInfo SetPrimaryAccount(SigninManagerBase* signin_manager,
-                                       IdentityManager* identity_manager,
+  friend AccountInfo SetPrimaryAccount(IdentityManager* identity_manager,
                                        const std::string& email);
 
   // These clients need to use the private getters below.
   friend AccountInfo MakePrimaryAccountAvailable(
       IdentityManager* identity_manager,
       const std::string& email);
+
+  friend void SetRefreshTokenForPrimaryAccount(
+      IdentityManager* identity_manager);
+
+  friend void SetRefreshTokenForAccount(IdentityManager* identity_manager,
+                                        const std::string& account_id);
 
   friend MultiProfileDownloadNotificationTest;
   friend file_manager::MultiProfileFilesAppBrowserTest;

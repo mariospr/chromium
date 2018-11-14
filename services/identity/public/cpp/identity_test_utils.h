@@ -57,15 +57,13 @@ class IdentityManager;
 // SigninManager callbacks for signin success. Blocks until the primary account
 // is set. Returns the AccountInfo of the newly-set account.
 // NOTE: See disclaimer at top of file re: direct usage.
-AccountInfo SetPrimaryAccount(SigninManagerBase* signin_manager,
-                              IdentityManager* identity_manager,
+AccountInfo SetPrimaryAccount(IdentityManager* identity_manager,
                               const std::string& email);
 
 // Sets a refresh token for the primary account (which must already be set).
 // Blocks until the refresh token is set.
 // NOTE: See disclaimer at top of file re: direct usage.
-void SetRefreshTokenForPrimaryAccount(ProfileOAuth2TokenService* token_service,
-                                      IdentityManager* identity_manager);
+void SetRefreshTokenForPrimaryAccount(IdentityManager* identity_manager);
 
 // Sets a special invalid refresh token for the primary account (which must
 // already be set). Blocks until the refresh token is set.
@@ -115,8 +113,7 @@ AccountInfo MakeAccountAvailable(AccountTrackerService* account_tracker_service,
 // Sets a refresh token for the given account (which must already be available).
 // Blocks until the refresh token is set.
 // NOTE: See disclaimer at top of file re: direct usage.
-void SetRefreshTokenForAccount(ProfileOAuth2TokenService* token_service,
-                               IdentityManager* identity_manager,
+void SetRefreshTokenForAccount(IdentityManager* identity_manager,
                                const std::string& account_id);
 
 // Sets a special invalid refresh token for the given account (which must

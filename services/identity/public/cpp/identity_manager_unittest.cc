@@ -514,7 +514,7 @@ class IdentityManagerTest : public testing::Test {
     // Ensure primary and secondary emails are set up with refresh tokens. Some
     // tests may do this externally for the primary account.
     if (!identity_manager()->HasPrimaryAccountWithRefreshToken())
-      SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+      SetRefreshTokenForPrimaryAccount(identity_manager());
     EXPECT_TRUE(identity_manager()->HasPrimaryAccountWithRefreshToken());
     AccountInfo secondary_account_info = MakeAccountAvailable(
         account_tracker(), token_service(), identity_manager(), kTestEmail2);
@@ -693,7 +693,7 @@ TEST_F(IdentityManagerTest,
       SigninManagerSetup::kWithAuthenticatedAccout);
 
   // Set primary account to have authentication error.
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
   token_service()->UpdateAuthErrorForTesting(
       identity_manager()->GetPrimaryAccountId(),
       GoogleServiceAuthError(
@@ -850,7 +850,7 @@ TEST_F(IdentityManagerTest, GetAccountsInteractionWithPrimaryAccount) {
 
   // Add a refresh token for the primary account and check that it shows up in
   // GetAccountsWithRefreshTokens().
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   std::vector<AccountInfo> accounts_after_update =
       identity_manager()->GetAccountsWithRefreshTokens();
@@ -861,7 +861,7 @@ TEST_F(IdentityManagerTest, GetAccountsInteractionWithPrimaryAccount) {
   EXPECT_EQ(accounts_after_update[0].email, kTestEmail);
 
   // Update the token and check that it doesn't change the state (or blow up).
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   std::vector<AccountInfo> accounts_after_second_update =
       identity_manager()->GetAccountsWithRefreshTokens();
@@ -890,14 +890,14 @@ TEST_F(IdentityManagerTest,
 
   // Add a refresh token for the primary account and check that it affects this
   // state.
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   EXPECT_TRUE(
       identity_manager()->HasAccountWithRefreshToken(account_info.account_id));
   EXPECT_TRUE(identity_manager()->HasPrimaryAccountWithRefreshToken());
 
   // Update the token and check that it doesn't change the state (or blow up).
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   EXPECT_TRUE(
       identity_manager()->HasAccountWithRefreshToken(account_info.account_id));
@@ -919,7 +919,7 @@ TEST_F(IdentityManagerTest, GetAccountsReflectsNonemptyInitialState) {
 
   // Add a refresh token for the primary account and sanity-check that it shows
   // up in GetAccountsWithRefreshTokens().
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   std::vector<AccountInfo> accounts_after_update =
       identity_manager()->GetAccountsWithRefreshTokens();
@@ -950,7 +950,7 @@ TEST_F(IdentityManagerTest,
       identity_manager()->HasAccountWithRefreshToken(account_info.account_id));
   EXPECT_FALSE(identity_manager()->HasPrimaryAccountWithRefreshToken());
 
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   EXPECT_TRUE(
       identity_manager()->HasAccountWithRefreshToken(account_info.account_id));
@@ -974,7 +974,7 @@ TEST_F(IdentityManagerTest, GetAccountsInteractionWithSecondaryAccounts) {
   account_tracker()->SeedAccountInfo(kTestGaiaId2, kTestEmail2);
   std::string account_id2 =
       account_tracker()->FindAccountInfoByGaiaId(kTestGaiaId2).account_id;
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id2);
+  SetRefreshTokenForAccount(identity_manager(), account_id2);
 
   std::vector<AccountInfo> accounts_after_update =
       identity_manager()->GetAccountsWithRefreshTokens();
@@ -989,7 +989,7 @@ TEST_F(IdentityManagerTest, GetAccountsInteractionWithSecondaryAccounts) {
   account_tracker()->SeedAccountInfo(kTestGaiaId3, kTestEmail3);
   std::string account_id3 =
       account_tracker()->FindAccountInfoByGaiaId(kTestGaiaId3).account_id;
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id3);
+  SetRefreshTokenForAccount(identity_manager(), account_id3);
 
   std::vector<AccountInfo> accounts_after_second_update =
       identity_manager()->GetAccountsWithRefreshTokens();
@@ -1027,7 +1027,7 @@ TEST_F(IdentityManagerTest,
   account_tracker()->SeedAccountInfo(kTestGaiaId2, kTestEmail2);
   std::string account_id2 =
       account_tracker()->FindAccountInfoByGaiaId(kTestGaiaId2).account_id;
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id2);
+  SetRefreshTokenForAccount(identity_manager(), account_id2);
 
   EXPECT_FALSE(identity_manager()->HasPrimaryAccountWithRefreshToken());
 
@@ -1036,7 +1036,7 @@ TEST_F(IdentityManagerTest,
   account_tracker()->SeedAccountInfo(kTestGaiaId3, kTestEmail3);
   std::string account_id3 =
       account_tracker()->FindAccountInfoByGaiaId(kTestGaiaId3).account_id;
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id3);
+  SetRefreshTokenForAccount(identity_manager(), account_id3);
 
   EXPECT_FALSE(identity_manager()->HasPrimaryAccountWithRefreshToken());
 
@@ -1059,7 +1059,7 @@ TEST_F(IdentityManagerTest,
 
   // Add a refresh token for account_info2 and check that this is reflected by
   // HasAccountWithRefreshToken(.account_id).
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id2);
+  SetRefreshTokenForAccount(identity_manager(), account_id2);
 
   EXPECT_TRUE(
       identity_manager()->HasAccountWithRefreshToken(account_info2.account_id));
@@ -1075,7 +1075,7 @@ TEST_F(IdentityManagerTest,
   EXPECT_FALSE(
       identity_manager()->HasAccountWithRefreshToken(account_info3.account_id));
 
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id3);
+  SetRefreshTokenForAccount(identity_manager(), account_id3);
 
   EXPECT_TRUE(
       identity_manager()->HasAccountWithRefreshToken(account_info2.account_id));
@@ -1102,7 +1102,7 @@ TEST_F(IdentityManagerTest,
   account_tracker()->SeedAccountInfo(kTestGaiaId2, kTestEmail2);
   std::string account_id2 =
       account_tracker()->FindAccountInfoByGaiaId(kTestGaiaId2).account_id;
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id2);
+  SetRefreshTokenForAccount(identity_manager(), account_id2);
 
   std::vector<AccountInfo> accounts_after_update =
       identity_manager()->GetAccountsWithRefreshTokens();
@@ -1118,7 +1118,7 @@ TEST_F(IdentityManagerTest,
   // also shows up in GetAccountsWithRefreshTokens().
   std::string primary_account_id =
       signin_manager()->GetAuthenticatedAccountId();
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   std::vector<AccountInfo> accounts_after_second_update =
       identity_manager()->GetAccountsWithRefreshTokens();
@@ -1161,7 +1161,7 @@ TEST_F(
   account_tracker()->SeedAccountInfo(kTestGaiaId2, kTestEmail2);
   std::string account_id2 =
       account_tracker()->FindAccountInfoByGaiaId(kTestGaiaId2).account_id;
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id2);
+  SetRefreshTokenForAccount(identity_manager(), account_id2);
 
   EXPECT_FALSE(identity_manager()->HasPrimaryAccountWithRefreshToken());
 
@@ -1169,7 +1169,7 @@ TEST_F(
   // *does* impact the stsate of HasPrimaryAccountWithRefreshToken().
   std::string primary_account_id =
       signin_manager()->GetAuthenticatedAccountId();
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   EXPECT_TRUE(identity_manager()->HasPrimaryAccountWithRefreshToken());
 
@@ -1206,7 +1206,7 @@ TEST_F(
 
   // Add a refresh token for account_info2 and check that this is reflected by
   // HasAccountWithRefreshToken(.account_id).
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id2);
+  SetRefreshTokenForAccount(identity_manager(), account_id2);
 
   EXPECT_FALSE(identity_manager()->HasAccountWithRefreshToken(
       primary_account_info.account_id));
@@ -1214,7 +1214,7 @@ TEST_F(
       identity_manager()->HasAccountWithRefreshToken(account_info2.account_id));
 
   // Go through the same process for the primary account.
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   EXPECT_TRUE(identity_manager()->HasAccountWithRefreshToken(
       primary_account_info.account_id));
@@ -1245,7 +1245,7 @@ TEST_F(IdentityManagerTest, GetErrorStateOfRefreshTokenForAccount) {
       identity_manager()->HasAccountWithRefreshTokenInPersistentErrorState(
           primary_account_id));
 
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
   EXPECT_EQ(GoogleServiceAuthError::AuthErrorNone(),
             identity_manager()->GetErrorStateOfRefreshTokenForAccount(
                 primary_account_id));
@@ -1266,7 +1266,7 @@ TEST_F(IdentityManagerTest, GetErrorStateOfRefreshTokenForAccount) {
       identity_manager()->HasAccountWithRefreshTokenInPersistentErrorState(
           account_id2));
 
-  SetRefreshTokenForAccount(token_service(), identity_manager(), account_id2);
+  SetRefreshTokenForAccount(identity_manager(), account_id2);
   EXPECT_EQ(
       GoogleServiceAuthError::AuthErrorNone(),
       identity_manager()->GetErrorStateOfRefreshTokenForAccount(account_id2));
@@ -1576,7 +1576,7 @@ TEST_F(IdentityManagerTest,
        CallbackSentOnPrimaryAccountRefreshTokenUpdateWithValidToken) {
   std::string account_id = signin_manager()->GetAuthenticatedAccountId();
 
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   AccountInfo account_info =
       identity_manager_observer()
@@ -1607,7 +1607,7 @@ TEST_F(IdentityManagerTest,
 TEST_F(IdentityManagerTest, CallbackSentOnPrimaryAccountRefreshTokenRemoval) {
   std::string account_id = signin_manager()->GetAuthenticatedAccountId();
 
-  SetRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetRefreshTokenForPrimaryAccount(identity_manager());
 
   RemoveRefreshTokenForPrimaryAccount(token_service(), identity_manager());
 
