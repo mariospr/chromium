@@ -47,6 +47,7 @@ namespace identity {
 
 class PrimaryAccountMutator;
 enum class ClearPrimaryAccountPolicy;
+struct CookieParams;
 
 // Gives access to information about the user's Google identities. See
 // ./README.md for detailed documentation.
@@ -292,6 +293,9 @@ class IdentityManager : public SigninManagerBase::Observer,
       const std::string& account_id);
   friend void RemoveRefreshTokenForAccount(IdentityManager* identity_manager,
                                            const std::string& account_id);
+  friend void SetCookieAccounts(
+      IdentityManager* identity_manager,
+      const std::vector<CookieParams>& cookie_accounts);
   friend void UpdateAccountInfoForAccount(IdentityManager* identity_manager,
                                           AccountInfo account_info);
 
@@ -308,6 +312,7 @@ class IdentityManager : public SigninManagerBase::Observer,
   SigninManagerBase* GetSigninManager();
   ProfileOAuth2TokenService* GetTokenService();
   AccountTrackerService* GetAccountTrackerService();
+  GaiaCookieManagerService* GetGaiaCookieManagerService();
 
   // Sets the primary account info synchronously with both the IdentityManager
   // and its backing SigninManager/ProfileOAuth2TokenService instances.

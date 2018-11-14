@@ -127,8 +127,7 @@ void RemoveRefreshTokenForAccount(IdentityManager* identity_manager,
 // Puts the given accounts into the Gaia cookie, replacing any previous
 // accounts. Blocks until the accounts have been set.
 // NOTE: See disclaimer at top of file re: direct usage.
-void SetCookieAccounts(FakeGaiaCookieManagerService* cookie_manager,
-                       IdentityManager* identity_manager,
+void SetCookieAccounts(IdentityManager* identity_manager,
                        const std::vector<CookieParams>& cookie_accounts);
 
 // Updates the info for |account_info.account_id|, which must be a known

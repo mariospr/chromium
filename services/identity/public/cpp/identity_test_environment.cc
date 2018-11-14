@@ -255,8 +255,7 @@ void IdentityTestEnvironment::RemoveRefreshTokenForAccount(
 
 void IdentityTestEnvironment::SetCookieAccounts(
     const std::vector<CookieParams>& cookie_accounts) {
-  identity::SetCookieAccounts(gaia_cookie_manager_service_, identity_manager(),
-                              cookie_accounts);
+  identity::SetCookieAccounts(identity_manager(), cookie_accounts);
 }
 
 void IdentityTestEnvironment::SetAutomaticIssueOfAccessTokens(bool grant) {

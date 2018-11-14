@@ -295,8 +295,7 @@ void RemoveRefreshTokenForAccount(IdentityManager* identity_manager,
   run_loop.Run();
 }
 
-void SetCookieAccounts(FakeGaiaCookieManagerService* cookie_manager,
-                       IdentityManager* identity_manager,
+void SetCookieAccounts(IdentityManager* identity_manager,
                        const std::vector<CookieParams>& cookie_accounts) {
   // Convert |cookie_accounts| to the format FakeGaiaCookieManagerService wants.
   std::vector<FakeGaiaCookieManagerService::CookieParams> gaia_cookie_accounts;
@@ -310,6 +309,10 @@ void SetCookieAccounts(FakeGaiaCookieManagerService* cookie_manager,
   OneShotIdentityManagerObserver cookie_observer(
       identity_manager, run_loop.QuitClosure(),
       IdentityManagerEvent::ACCOUNTS_IN_COOKIE_UPDATED);
+
+  FakeGaiaCookieManagerService* cookie_manager =
+      static_cast<FakeGaiaCookieManagerService*>(
+          identity_manager->GetGaiaCookieManagerService());
 
   cookie_manager->SetListAccountsResponseWithParams(gaia_cookie_accounts);
 

@@ -68,10 +68,7 @@ void SignInSecondaryAccount(Profile* profile, const std::string& email) {
       IdentityManagerFactory::GetForProfile(profile);
   AccountInfo account_info = identity::MakeAccountAvailable(
       identity_manager, email);
-  FakeGaiaCookieManagerService* fake_cookie_service =
-      static_cast<FakeGaiaCookieManagerService*>(
-          GaiaCookieManagerServiceFactory::GetForProfile(profile));
-  identity::SetCookieAccounts(fake_cookie_service, identity_manager,
+  identity::SetCookieAccounts(identity_manager,
                               {{account_info.email, account_info.gaia}});
 }
 
