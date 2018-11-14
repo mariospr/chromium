@@ -10,12 +10,8 @@
 #include "build/build_config.h"
 #include "components/signin/core/browser/account_info.h"
 
-class AccountTrackerService;
-class FakeGaiaCookieManagerService;
 class FakeSigninManagerBase;
 class FakeSigninManager;
-class ProfileOAuth2TokenService;
-class SigninManagerBase;
 
 #if defined(OS_CHROMEOS)
 using SigninManagerForTest = FakeSigninManagerBase;

@@ -308,7 +308,7 @@ class IdentityManager : public SigninManagerBase::Observer,
   friend chromeos::ChromeSessionManager;
   friend chromeos::UserSessionManager;
 
-  // TODO: Document
+  // Private getters used for testing only (i.e. see identity_test_utils.h).
   SigninManagerBase* GetSigninManager();
   ProfileOAuth2TokenService* GetTokenService();
   AccountTrackerService* GetAccountTrackerService();

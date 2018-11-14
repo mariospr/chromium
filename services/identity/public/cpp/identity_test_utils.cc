@@ -8,7 +8,6 @@
 #include "base/strings/string_split.h"
 #include "components/signin/core/browser/account_tracker_service.h"
 #include "components/signin/core/browser/fake_gaia_cookie_manager_service.h"
-#include "components/signin/core/browser/fake_signin_manager.h"
 #include "components/signin/core/browser/profile_oauth2_token_service.h"
 #include "services/identity/public/cpp/identity_manager.h"
 
