@@ -229,7 +229,7 @@ AccountInfo IdentityTestEnvironment::MakePrimaryAccountAvailable(
 
 void IdentityTestEnvironment::ClearPrimaryAccount(
     ClearPrimaryAccountPolicy policy) {
-  identity::ClearPrimaryAccount(signin_manager_, identity_manager(), policy);
+  identity::ClearPrimaryAccount(identity_manager(), policy);
 }
 
 AccountInfo IdentityTestEnvironment::MakeAccountAvailable(

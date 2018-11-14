@@ -94,7 +94,6 @@ AccountInfo MakePrimaryAccountAvailable(
 // until the primary account is cleared.
 // NOTE: See disclaimer at top of file re: direct usage.
 void ClearPrimaryAccount(
-    SigninManagerBase* signin_manager,
     IdentityManager* identity_manager,
     ClearPrimaryAccountPolicy policy = ClearPrimaryAccountPolicy::DEFAULT);
 

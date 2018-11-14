@@ -46,6 +46,7 @@ class MultiProfileDownloadNotificationTest;
 namespace identity {
 
 class PrimaryAccountMutator;
+enum class ClearPrimaryAccountPolicy;
 
 // Gives access to information about the user's Google identities. See
 // ./README.md for detailed documentation.
@@ -280,6 +281,8 @@ class IdentityManager : public SigninManagerBase::Observer,
   friend AccountInfo MakePrimaryAccountAvailable(
       IdentityManager* identity_manager,
       const std::string& email);
+  friend void ClearPrimaryAccount(IdentityManager* identity_manager,
+                                  ClearPrimaryAccountPolicy policy);
   friend AccountInfo MakeAccountAvailable(IdentityManager* identity_manager,
                                           const std::string& email);
   friend void SetRefreshTokenForAccount(IdentityManager* identity_manager,
