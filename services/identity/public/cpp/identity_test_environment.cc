@@ -215,8 +215,7 @@ void IdentityTestEnvironment::SetRefreshTokenForPrimaryAccount() {
 }
 
 void IdentityTestEnvironment::SetInvalidRefreshTokenForPrimaryAccount() {
-  identity::SetInvalidRefreshTokenForPrimaryAccount(token_service_,
-                                                    identity_manager());
+  identity::SetInvalidRefreshTokenForPrimaryAccount(identity_manager());
 }
 
 void IdentityTestEnvironment::RemoveRefreshTokenForPrimaryAccount() {
@@ -247,8 +246,8 @@ void IdentityTestEnvironment::SetRefreshTokenForAccount(
 
 void IdentityTestEnvironment::SetInvalidRefreshTokenForAccount(
     const std::string& account_id) {
-  return identity::SetInvalidRefreshTokenForAccount(
-      token_service_, identity_manager(), account_id);
+  return identity::SetInvalidRefreshTokenForAccount(identity_manager(),
+                                                    account_id);
 }
 
 void IdentityTestEnvironment::RemoveRefreshTokenForAccount(

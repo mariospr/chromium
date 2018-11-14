@@ -1592,7 +1592,7 @@ TEST_F(IdentityManagerTest,
        CallbackSentOnPrimaryAccountRefreshTokenUpdateWithInvalidToken) {
   std::string account_id = signin_manager()->GetAuthenticatedAccountId();
 
-  SetInvalidRefreshTokenForPrimaryAccount(token_service(), identity_manager());
+  SetInvalidRefreshTokenForPrimaryAccount(identity_manager());
 
   AccountInfo account_info =
       identity_manager_observer()
@@ -1638,7 +1638,7 @@ TEST_F(IdentityManagerTest,
       account_tracker(), token_service(), identity_manager(), kTestEmail2);
   EXPECT_EQ(kTestEmail2, expected_account_info.email);
 
-  SetInvalidRefreshTokenForAccount(token_service(), identity_manager(),
+  SetInvalidRefreshTokenForAccount(identity_manager(),
                                    expected_account_info.account_id);
 
   AccountInfo account_info =
@@ -1703,7 +1703,7 @@ TEST_F(
       account_tracker(), token_service(), identity_manager(), kTestEmail2);
   EXPECT_EQ(kTestEmail2, expected_account_info.email);
 
-  SetInvalidRefreshTokenForAccount(token_service(), identity_manager(),
+  SetInvalidRefreshTokenForAccount(identity_manager(),
                                    expected_account_info.account_id);
 
   AccountInfo account_info =

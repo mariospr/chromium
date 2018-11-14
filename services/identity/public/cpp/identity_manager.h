@@ -268,18 +268,19 @@ class IdentityManager : public SigninManagerBase::Observer,
   void RemoveDiagnosticsObserver(DiagnosticsObserver* observer);
 
  private:
-  // These clients need to call SetPrimaryAccountSynchronouslyForTests().
+  // These clients need to use some of the private methods below.
   friend AccountInfo SetPrimaryAccount(IdentityManager* identity_manager,
                                        const std::string& email);
-
-  // These clients need to use the private getters below.
   friend AccountInfo MakePrimaryAccountAvailable(
       IdentityManager* identity_manager,
       const std::string& email);
-
   friend void SetRefreshTokenForPrimaryAccount(
       IdentityManager* identity_manager);
-
+  friend void SetInvalidRefreshTokenForPrimaryAccount(
+      IdentityManager* identity_manager);
+  friend void SetInvalidRefreshTokenForAccount(
+      IdentityManager* identity_manager,
+      const std::string& account_id);
   friend void SetRefreshTokenForAccount(IdentityManager* identity_manager,
                                         const std::string& account_id);
 

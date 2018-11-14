@@ -69,7 +69,6 @@ void SetRefreshTokenForPrimaryAccount(IdentityManager* identity_manager);
 // already be set). Blocks until the refresh token is set.
 // NOTE: See disclaimer at top of file re: direct usage.
 void SetInvalidRefreshTokenForPrimaryAccount(
-    ProfileOAuth2TokenService* token_service,
     IdentityManager* identity_manager);
 
 // Removes any refresh token for the primary account, if present. Blocks until
@@ -119,8 +118,7 @@ void SetRefreshTokenForAccount(IdentityManager* identity_manager,
 // Sets a special invalid refresh token for the given account (which must
 // already be available). Blocks until the refresh token is set.
 // NOTE: See disclaimer at top of file re: direct usage.
-void SetInvalidRefreshTokenForAccount(ProfileOAuth2TokenService* token_service,
-                                      IdentityManager* identity_manager,
+void SetInvalidRefreshTokenForAccount(IdentityManager* identity_manager,
                                       const std::string& account_id);
 
 // Removes any refresh token that is present for the given account. Blocks until
