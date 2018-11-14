@@ -10,15 +10,6 @@
 #include "build/build_config.h"
 #include "components/signin/core/browser/account_info.h"
 
-class FakeSigninManagerBase;
-class FakeSigninManager;
-
-#if defined(OS_CHROMEOS)
-using SigninManagerForTest = FakeSigninManagerBase;
-#else
-using SigninManagerForTest = FakeSigninManager;
-#endif  // OS_CHROMEOS
-
 // Test-related utilities that don't fit in either IdentityTestEnvironment or
 // IdentityManager itself. NOTE: Using these utilities directly is discouraged,
 // but sometimes necessary during conversion. Use IdentityTestEnvironment if
