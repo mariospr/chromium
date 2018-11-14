@@ -278,11 +278,15 @@ class IdentityManager : public SigninManagerBase::Observer,
       IdentityManager* identity_manager);
   friend void SetInvalidRefreshTokenForPrimaryAccount(
       IdentityManager* identity_manager);
+  friend void RemoveRefreshTokenForPrimaryAccount(
+      IdentityManager* identity_manager);
+  friend void SetRefreshTokenForAccount(IdentityManager* identity_manager,
+                                        const std::string& account_id);
   friend void SetInvalidRefreshTokenForAccount(
       IdentityManager* identity_manager,
       const std::string& account_id);
-  friend void SetRefreshTokenForAccount(IdentityManager* identity_manager,
-                                        const std::string& account_id);
+  friend void RemoveRefreshTokenForAccount(IdentityManager* identity_manager,
+                                           const std::string& account_id);
 
   friend MultiProfileDownloadNotificationTest;
   friend file_manager::MultiProfileFilesAppBrowserTest;

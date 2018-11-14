@@ -219,8 +219,7 @@ void IdentityTestEnvironment::SetInvalidRefreshTokenForPrimaryAccount() {
 }
 
 void IdentityTestEnvironment::RemoveRefreshTokenForPrimaryAccount() {
-  identity::RemoveRefreshTokenForPrimaryAccount(token_service_,
-                                                identity_manager());
+  identity::RemoveRefreshTokenForPrimaryAccount(identity_manager());
 }
 
 AccountInfo IdentityTestEnvironment::MakePrimaryAccountAvailable(
@@ -252,8 +251,7 @@ void IdentityTestEnvironment::SetInvalidRefreshTokenForAccount(
 
 void IdentityTestEnvironment::RemoveRefreshTokenForAccount(
     const std::string& account_id) {
-  return identity::RemoveRefreshTokenForAccount(token_service_,
-                                                identity_manager(), account_id);
+  return identity::RemoveRefreshTokenForAccount(identity_manager(), account_id);
 }
 
 void IdentityTestEnvironment::SetCookieAccounts(

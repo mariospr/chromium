@@ -75,7 +75,6 @@ void SetInvalidRefreshTokenForPrimaryAccount(
 // the refresh token is removed.
 // NOTE: See disclaimer at top of file re: direct usage.
 void RemoveRefreshTokenForPrimaryAccount(
-    ProfileOAuth2TokenService* token_service,
     IdentityManager* identity_manager);
 
 // Makes the primary account (which must not already be set) available for the
@@ -125,8 +124,7 @@ void SetInvalidRefreshTokenForAccount(IdentityManager* identity_manager,
 // the refresh token is removed. Is a no-op if no refresh token is present for
 // the given account.
 // NOTE: See disclaimer at top of file re: direct usage.
-void RemoveRefreshTokenForAccount(ProfileOAuth2TokenService* token_service,
-                                  IdentityManager* identity_manager,
+void RemoveRefreshTokenForAccount(IdentityManager* identity_manager,
                                   const std::string& account_id);
 
 // Puts the given accounts into the Gaia cookie, replacing any previous
