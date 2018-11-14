@@ -247,10 +247,12 @@ void ClearPrimaryAccount(SigninManagerBase* signin_manager,
 #endif
 }
 
-AccountInfo MakeAccountAvailable(AccountTrackerService* account_tracker_service,
-                                 ProfileOAuth2TokenService* token_service,
-                                 IdentityManager* identity_manager,
+AccountInfo MakeAccountAvailable(IdentityManager* identity_manager,
                                  const std::string& email) {
+  AccountTrackerService* account_tracker_service =
+      identity_manager->GetAccountTrackerService();
+
+  DCHECK(account_tracker_service);
   DCHECK(account_tracker_service->FindAccountInfoByEmail(email).IsEmpty());
 
   std::string gaia_id = "gaia_id_for_" + email;

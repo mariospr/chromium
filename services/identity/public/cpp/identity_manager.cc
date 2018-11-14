@@ -216,7 +216,7 @@ ProfileOAuth2TokenService* IdentityManager::GetTokenService() {
   return token_service_;
 }
 
-AccountTrackerService* IdentityManager::GetAccountTrackedService() {
+AccountTrackerService* IdentityManager::GetAccountTrackerService() {
   return account_tracker_service_;
 }
 

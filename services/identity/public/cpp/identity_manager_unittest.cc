@@ -516,8 +516,8 @@ class IdentityManagerTest : public testing::Test {
     if (!identity_manager()->HasPrimaryAccountWithRefreshToken())
       SetRefreshTokenForPrimaryAccount(identity_manager());
     EXPECT_TRUE(identity_manager()->HasPrimaryAccountWithRefreshToken());
-    AccountInfo secondary_account_info = MakeAccountAvailable(
-        account_tracker(), token_service(), identity_manager(), kTestEmail2);
+    AccountInfo secondary_account_info =
+        MakeAccountAvailable(identity_manager(), kTestEmail2);
     EXPECT_TRUE(identity_manager()->HasAccountWithRefreshToken(
         secondary_account_info.account_id));
 
@@ -719,8 +719,8 @@ TEST_F(IdentityManagerTest, ClearPrimaryAccount_AuthInProgress) {
 
   // Add a secondary account to verify that its refresh token survives the
   // call to ClearPrimaryAccount(...) below.
-  AccountInfo secondary_account_info = MakeAccountAvailable(
-      account_tracker(), token_service(), identity_manager(), kTestEmail2);
+  AccountInfo secondary_account_info =
+      MakeAccountAvailable(identity_manager(), kTestEmail2);
   EXPECT_TRUE(identity_manager()->HasAccountWithRefreshToken(
       secondary_account_info.account_id));
 
@@ -1611,8 +1611,8 @@ TEST_F(IdentityManagerTest, CallbackSentOnPrimaryAccountRefreshTokenRemoval) {
 
 TEST_F(IdentityManagerTest,
        CallbackSentOnSecondaryAccountRefreshTokenUpdateWithValidToken) {
-  AccountInfo expected_account_info = MakeAccountAvailable(
-      account_tracker(), token_service(), identity_manager(), kTestEmail2);
+  AccountInfo expected_account_info =
+      MakeAccountAvailable(identity_manager(), kTestEmail2);
   EXPECT_EQ(kTestEmail2, expected_account_info.email);
 
   AccountInfo account_info =
@@ -1628,8 +1628,8 @@ TEST_F(IdentityManagerTest,
 
 TEST_F(IdentityManagerTest,
        CallbackSentOnSecondaryAccountRefreshTokenUpdateWithInvalidToken) {
-  AccountInfo expected_account_info = MakeAccountAvailable(
-      account_tracker(), token_service(), identity_manager(), kTestEmail2);
+  AccountInfo expected_account_info =
+      MakeAccountAvailable(identity_manager(), kTestEmail2);
   EXPECT_EQ(kTestEmail2, expected_account_info.email);
 
   SetInvalidRefreshTokenForAccount(identity_manager(),
@@ -1647,8 +1647,8 @@ TEST_F(IdentityManagerTest,
 }
 
 TEST_F(IdentityManagerTest, CallbackSentOnSecondaryAccountRefreshTokenRemoval) {
-  AccountInfo expected_account_info = MakeAccountAvailable(
-      account_tracker(), token_service(), identity_manager(), kTestEmail2);
+  AccountInfo expected_account_info =
+      MakeAccountAvailable(identity_manager(), kTestEmail2);
   EXPECT_EQ(kTestEmail2, expected_account_info.email);
 
   RemoveRefreshTokenForAccount(identity_manager(),
@@ -1669,8 +1669,8 @@ TEST_F(
   signin_manager()->ForceSignOut();
   run_loop.Run();
 
-  AccountInfo expected_account_info = MakeAccountAvailable(
-      account_tracker(), token_service(), identity_manager(), kTestEmail2);
+  AccountInfo expected_account_info =
+      MakeAccountAvailable(identity_manager(), kTestEmail2);
   EXPECT_EQ(kTestEmail2, expected_account_info.email);
 
   AccountInfo account_info =
@@ -1693,8 +1693,8 @@ TEST_F(
   signin_manager()->ForceSignOut();
   run_loop.Run();
 
-  AccountInfo expected_account_info = MakeAccountAvailable(
-      account_tracker(), token_service(), identity_manager(), kTestEmail2);
+  AccountInfo expected_account_info =
+      MakeAccountAvailable(identity_manager(), kTestEmail2);
   EXPECT_EQ(kTestEmail2, expected_account_info.email);
 
   SetInvalidRefreshTokenForAccount(identity_manager(),
@@ -1719,8 +1719,8 @@ TEST_F(IdentityManagerTest,
   signin_manager()->ForceSignOut();
   run_loop.Run();
 
-  AccountInfo expected_account_info = MakeAccountAvailable(
-      account_tracker(), token_service(), identity_manager(), kTestEmail2);
+  AccountInfo expected_account_info =
+      MakeAccountAvailable(identity_manager(), kTestEmail2);
   EXPECT_EQ(kTestEmail2, expected_account_info.email);
 
   RemoveRefreshTokenForAccount(identity_manager(),

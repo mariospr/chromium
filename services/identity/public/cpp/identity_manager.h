@@ -271,15 +271,17 @@ class IdentityManager : public SigninManagerBase::Observer,
   // These clients need to use some of the private methods below.
   friend AccountInfo SetPrimaryAccount(IdentityManager* identity_manager,
                                        const std::string& email);
-  friend AccountInfo MakePrimaryAccountAvailable(
-      IdentityManager* identity_manager,
-      const std::string& email);
   friend void SetRefreshTokenForPrimaryAccount(
       IdentityManager* identity_manager);
   friend void SetInvalidRefreshTokenForPrimaryAccount(
       IdentityManager* identity_manager);
   friend void RemoveRefreshTokenForPrimaryAccount(
       IdentityManager* identity_manager);
+  friend AccountInfo MakePrimaryAccountAvailable(
+      IdentityManager* identity_manager,
+      const std::string& email);
+  friend AccountInfo MakeAccountAvailable(IdentityManager* identity_manager,
+                                          const std::string& email);
   friend void SetRefreshTokenForAccount(IdentityManager* identity_manager,
                                         const std::string& account_id);
   friend void SetInvalidRefreshTokenForAccount(
@@ -300,7 +302,7 @@ class IdentityManager : public SigninManagerBase::Observer,
   // TODO: Document
   SigninManagerBase* GetSigninManager();
   ProfileOAuth2TokenService* GetTokenService();
-  AccountTrackerService* GetAccountTrackedService();
+  AccountTrackerService* GetAccountTrackerService();
 
   // Sets the primary account info synchronously with both the IdentityManager
   // and its backing SigninManager/ProfileOAuth2TokenService instances.

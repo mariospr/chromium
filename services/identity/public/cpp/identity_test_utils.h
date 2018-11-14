@@ -103,9 +103,7 @@ void ClearPrimaryAccount(
 // until the account is available. Returns the AccountInfo of the
 // newly-available account.
 // NOTE: See disclaimer at top of file re: direct usage.
-AccountInfo MakeAccountAvailable(AccountTrackerService* account_tracker_service,
-                                 ProfileOAuth2TokenService* token_service,
-                                 IdentityManager* identity_manager,
+AccountInfo MakeAccountAvailable(IdentityManager* identity_manager,
                                  const std::string& email);
 
 // Sets a refresh token for the given account (which must already be available).

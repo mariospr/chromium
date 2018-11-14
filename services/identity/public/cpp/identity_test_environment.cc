@@ -234,8 +234,7 @@ void IdentityTestEnvironment::ClearPrimaryAccount(
 
 AccountInfo IdentityTestEnvironment::MakeAccountAvailable(
     const std::string& email) {
-  return identity::MakeAccountAvailable(
-      account_tracker_service_, token_service_, identity_manager(), email);
+  return identity::MakeAccountAvailable(identity_manager(), email);
 }
 
 void IdentityTestEnvironment::SetRefreshTokenForAccount(
