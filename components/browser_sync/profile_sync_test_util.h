@@ -13,10 +13,6 @@
 #include "components/browser_sync/profile_sync_service.h"
 #include "components/invalidation/impl/fake_invalidation_service.h"
 #include "components/invalidation/impl/profile_identity_provider.h"
-#include "components/signin/core/browser/account_tracker_service.h"
-#include "components/signin/core/browser/fake_gaia_cookie_manager_service.h"
-#include "components/signin/core/browser/fake_profile_oauth2_token_service.h"
-#include "components/signin/core/browser/fake_signin_manager.h"
 #include "components/signin/core/browser/test_signin_client.h"
 #include "components/sync/driver/fake_sync_client.h"
 #include "components/sync/driver/sync_api_component_factory_mock.h"
@@ -44,12 +40,6 @@ void RegisterPrefsForProfileSyncService(
 // MessageLoop, though.
 class ProfileSyncServiceBundle {
  public:
-#if defined(OS_CHROMEOS)
-  using FakeSigninManagerType = FakeSigninManagerBase;
-#else
-  using FakeSigninManagerType = FakeSigninManager;
-#endif
-
   ProfileSyncServiceBundle();
 
   ~ProfileSyncServiceBundle();
@@ -127,10 +117,6 @@ class ProfileSyncServiceBundle {
     return &pref_service_;
   }
 
-  FakeProfileOAuth2TokenService* auth_service() { return &auth_service_; }
-
-  FakeSigninManagerType* signin_manager() { return &signin_manager_; }
-
   identity::IdentityTestEnvironment* identity_test_env() {
     return &identity_test_env_;
   }
@@ -138,8 +124,6 @@ class ProfileSyncServiceBundle {
   identity::IdentityManager* identity_manager() {
     return identity_test_env_.identity_manager();
   }
-
-  AccountTrackerService* account_tracker() { return &account_tracker_; }
 
   syncer::SyncApiComponentFactoryMock* component_factory() {
     return &component_factory_;
@@ -165,10 +149,6 @@ class ProfileSyncServiceBundle {
   sync_preferences::TestingPrefServiceSyncable pref_service_;
   syncer::TestModelTypeStoreService model_type_store_service_;
   TestSigninClient signin_client_;
-  AccountTrackerService account_tracker_;
-  FakeSigninManagerType signin_manager_;
-  FakeProfileOAuth2TokenService auth_service_;
-  FakeGaiaCookieManagerService gaia_cookie_manager_service_;
   identity::IdentityTestEnvironment identity_test_env_;
   testing::NiceMock<syncer::SyncApiComponentFactoryMock> component_factory_;
   std::unique_ptr<invalidation::ProfileIdentityProvider> identity_provider_;
