@@ -31,7 +31,9 @@
 #include "components/signin/core/browser/account_info.h"
 #include "components/signin/core/browser/account_tracker_service.h"
 #include "components/signin/core/browser/gaia_cookie_manager_service.h"
+#include "components/signin/core/browser/identity_utils.h"
 #include "components/signin/core/browser/signin_manager.h"
+#include "components/signin/core/browser/signin_pref_names.h"
 #include "components/user_manager/user_manager.h"
 #include "services/identity/public/cpp/identity_manager.h"
 #include "third_party/re2/src/re2/re2.h"
@@ -239,7 +241,9 @@ std::vector<AccountInfo> GetAccountsForDicePromos(Profile* profile) {
   std::vector<AccountInfo> accounts;
   for (auto account_info : accounts_with_tokens) {
     DCHECK(!account_info.IsEmpty());
-    if (!signin_manager->IsAllowedUsername(account_info.email)) {
+    if (!identity::IsUsernameAllowedByPattern(
+            account_info.email, g_browser_process->local_state()->GetString(
+                                    prefs::kGoogleServicesUsernamePattern))) {
       continue;
     }
     if (account_info.account_id == default_account_id)
