@@ -4,7 +4,9 @@
 
 #include "services/identity/public/cpp/primary_account_mutator.h"
 
+#include "base/run_loop.h"
 #include "base/test/scoped_task_environment.h"
+#include "components/signin/core/browser/signin_metrics.h"
 #include "services/identity/public/cpp/identity_test_environment.h"
 #include "testing/platform_test.h"
 
@@ -12,6 +14,9 @@ namespace {
 const char kUnknownAccountId[] = "{unknown account id}";
 const char kPrimaryAccountEmail[] = "primary.account@example.com";
 const char kAnotherAccountEmail[] = "another.account@example.com";
+const char kRefreshToken[] = "refresh_token";
+const char kPassword[] = "password";
+
 }  // namespace
 
 class PrimaryAccountMutatorTest : public PlatformTest {
@@ -26,9 +31,16 @@ class PrimaryAccountMutatorTest : public PlatformTest {
     return identity_manager()->GetPrimaryAccountMutator();
   }
 
+  void CompleteSigninCallback(const std::string& token) {
+    tokens_fetched_.push_back(token);
+  }
+
+  std::vector<std::string>& tokens_fetched() { return tokens_fetched_; }
+
  private:
   base::test::ScopedTaskEnvironment task_environment_;
   identity::IdentityTestEnvironment environment_;
+  std::vector<std::string> tokens_fetched_;
 };
 
 // Checks that the method to control whether setting the primary account is
@@ -133,4 +145,131 @@ TEST_F(PrimaryAccountMutatorTest,
   EXPECT_FALSE(identity_manager()->HasPrimaryAccount());
   EXPECT_FALSE(primary_account_mutator()->SetPrimaryAccount(
       primary_account_info.account_id));
+}
+
+// Checks that checking whether an authentication process is in progress reports
+// true before starting and after successfully completing the signin process.
+TEST_F(PrimaryAccountMutatorTest, AuthInProgressSigninCompleted) {
+  // Abort the test if the current platform does not support mutation of the
+  // primary account (the returned PrimaryAccountMutator* will be null).
+  if (!primary_account_mutator())
+    return;
+
+  AccountInfo account_info =
+      environment()->MakeAccountAvailable(kPrimaryAccountEmail);
+
+  // Account available in the tracker service but still not authenticated means
+  // there's neither a primary account nor an authentication process ongoing.
+  EXPECT_FALSE(identity_manager()->HasPrimaryAccount());
+  EXPECT_FALSE(
+      primary_account_mutator()->LegacyIsPrimaryAccountAuthInProgress());
+
+  // Start a signin process for the account we just made available and check
+  // that it's reported to be in progress before the process is completed.
+  base::RunLoop run_loop;
+  primary_account_mutator()->LegacyStartSigninWithRefreshTokenForPrimaryAccount(
+      kRefreshToken, account_info.gaia, account_info.email, kPassword,
+      base::BindRepeating(&PrimaryAccountMutatorTest::CompleteSigninCallback,
+                          base::Unretained(this)));
+  EXPECT_TRUE(
+      primary_account_mutator()->LegacyIsPrimaryAccountAuthInProgress());
+
+  AccountInfo auth_in_progress_account_info =
+      primary_account_mutator()->LegacyPrimaryAccountForAuthInProgress();
+
+  // The data from the AccountInfo related to the authentication process still
+  // in progress should match the data of the account being signed in.
+  EXPECT_EQ(auth_in_progress_account_info.account_id, account_info.account_id);
+  EXPECT_EQ(auth_in_progress_account_info.gaia, account_info.gaia);
+  EXPECT_EQ(auth_in_progress_account_info.email, account_info.email);
+
+  // Finally, complete the signin process so that we can do further checks.
+  primary_account_mutator()->LegacyCompletePendingPrimaryAccountSignin();
+  run_loop.RunUntilIdle();
+
+  // Onnly one refresh token should have been received, matching the request.
+  ASSERT_EQ(1U, tokens_fetched().size());
+  EXPECT_EQ(tokens_fetched()[0], kRefreshToken);
+
+  // An account has been authenticated now, so there should be a primary account
+  // authenticated and no authentication process reported as in progress now.
+  EXPECT_TRUE(identity_manager()->HasPrimaryAccount());
+  EXPECT_FALSE(
+      primary_account_mutator()->LegacyIsPrimaryAccountAuthInProgress());
+
+  // Information retrieved via the IdentityManager now for the current primary
+  // account should match the data of the account being signed in.
+  EXPECT_EQ(identity_manager()->GetPrimaryAccountId(), account_info.account_id);
+  AccountInfo identity_manager_account_info =
+      identity_manager()->GetPrimaryAccountInfo();
+  EXPECT_EQ(identity_manager_account_info.account_id, account_info.account_id);
+  EXPECT_EQ(identity_manager_account_info.gaia, account_info.gaia);
+  EXPECT_EQ(identity_manager_account_info.email, account_info.email);
+}
+
+// Checks that checking whether an authentication process is in progress reports
+// true before starting and after cancelling and ongoing signin process.
+TEST_F(PrimaryAccountMutatorTest, AuthInProgressSigninCancelled) {
+  // Abort the test if the current platform does not support mutation of the
+  // primary account (the returned PrimaryAccountMutator* will be null).
+  if (!primary_account_mutator())
+    return;
+
+  AccountInfo account_info =
+      environment()->MakeAccountAvailable(kPrimaryAccountEmail);
+
+  // Account available in the tracker service but still not authenticated means
+  // there's neither a primary account nor an authentication process ongoing.
+  EXPECT_FALSE(identity_manager()->HasPrimaryAccount());
+  EXPECT_FALSE(
+      primary_account_mutator()->LegacyIsPrimaryAccountAuthInProgress());
+
+  // Start a signin process for the account we just made available and check
+  // that it's reported to be in progress before the process is completed.
+  base::RunLoop run_loop;
+  primary_account_mutator()->LegacyStartSigninWithRefreshTokenForPrimaryAccount(
+      kRefreshToken, account_info.gaia, account_info.email, kPassword,
+      base::BindRepeating(&PrimaryAccountMutatorTest::CompleteSigninCallback,
+                          base::Unretained(this)));
+  EXPECT_TRUE(
+      primary_account_mutator()->LegacyIsPrimaryAccountAuthInProgress());
+
+  AccountInfo auth_in_progress_account_info =
+      primary_account_mutator()->LegacyPrimaryAccountForAuthInProgress();
+
+  // The data from the AccountInfo related to the authentication process still
+  // in progress should match the data of the account being signed in.
+  EXPECT_EQ(auth_in_progress_account_info.account_id, account_info.account_id);
+  EXPECT_EQ(auth_in_progress_account_info.gaia, account_info.gaia);
+  EXPECT_EQ(auth_in_progress_account_info.email, account_info.email);
+
+  // Now cancel the signin process (by attempting to clear the primary account
+  // we were trying to sign in so far), so that we can do further checks.
+  primary_account_mutator()->ClearPrimaryAccount(
+      identity::PrimaryAccountMutator::ClearAccountsAction::kRemoveAll,
+      signin_metrics::SIGNOUT_TEST,
+      signin_metrics::SignoutDelete::IGNORE_METRIC);
+  run_loop.RunUntilIdle();
+
+  // Onnly one refresh token should have been received, matching the request.
+  ASSERT_EQ(1U, tokens_fetched().size());
+  EXPECT_EQ(tokens_fetched()[0], kRefreshToken);
+
+  // An account has been authenticated now, so there should be a primary account
+  // authenticated and no authentication process reported as in progress now.
+
+  // The request has been cancelled, so there should not be a primary account
+  // signed in, the refresh we just received should not be valid for the primary
+  // account (even if it's been fetched and stored for the account already) and
+  // no authentication process reported as in progress now.
+  EXPECT_FALSE(identity_manager()->HasPrimaryAccount());
+  EXPECT_FALSE(identity_manager()->HasPrimaryAccountWithRefreshToken());
+  EXPECT_TRUE(
+      identity_manager()->HasAccountWithRefreshToken(account_info.account_id));
+  EXPECT_FALSE(
+      primary_account_mutator()->LegacyIsPrimaryAccountAuthInProgress());
+
+  // Information retrieved via the IdentityManager confirms the cancelation.
+  EXPECT_EQ(identity_manager()->GetPrimaryAccountId(), std::string());
+  EXPECT_TRUE(identity_manager()->GetPrimaryAccountInfo().IsEmpty());
 }
