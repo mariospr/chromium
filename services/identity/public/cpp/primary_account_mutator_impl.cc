@@ -93,7 +93,7 @@ void PrimaryAccountMutatorImpl::LegacyCompletePendingPrimaryAccountSignin() {
 }
 
 void PrimaryAccountMutatorImpl::LegacyMergeSigninCredentialIntoCookieJar() {
-  NOTIMPLEMENTED();
+  signin_manager_->MergeSigninCredentialIntoCookieJar();
 }
 
 bool PrimaryAccountMutatorImpl::LegacyIsPrimaryAccountAuthInProgress() const {
@@ -115,7 +115,9 @@ AccountInfo PrimaryAccountMutatorImpl::LegacyPrimaryAccountForAuthInProgress()
 
 void PrimaryAccountMutatorImpl::LegacyCopyCredentialsFrom(
     const PrimaryAccountMutator& source) {
-  NOTIMPLEMENTED();
+  const PrimaryAccountMutatorImpl* source_impl =
+      static_cast<const PrimaryAccountMutatorImpl*>(&source);
+  signin_manager_->CopyCredentialsFrom(*source_impl->signin_manager_);
 }
 
 }  // namespace identity
