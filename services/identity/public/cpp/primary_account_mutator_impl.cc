@@ -41,7 +41,18 @@ void PrimaryAccountMutatorImpl::ClearPrimaryAccount(
     ClearAccountsAction action,
     signin_metrics::ProfileSignout source_metric,
     signin_metrics::SignoutDelete delete_metric) {
-  NOTIMPLEMENTED();
+  switch (action) {
+    case PrimaryAccountMutator::ClearAccountsAction::kDefault:
+      signin_manager_->SignOut(source_metric, delete_metric);
+      break;
+    case PrimaryAccountMutator::ClearAccountsAction::kKeepAll:
+      signin_manager_->SignOutAndKeepAllAccounts(source_metric, delete_metric);
+      break;
+    case PrimaryAccountMutator::ClearAccountsAction::kRemoveAll:
+      signin_manager_->SignOutAndRemoveAllAccounts(source_metric,
+                                                   delete_metric);
+      break;
+  }
 }
 
 bool PrimaryAccountMutatorImpl::IsSettingPrimaryAccountAllowed() const {
