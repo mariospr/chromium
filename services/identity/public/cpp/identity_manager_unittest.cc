@@ -21,6 +21,7 @@
 #include "google_apis/gaia/oauth2_token_service_delegate.h"
 #include "services/identity/public/cpp/identity_test_utils.h"
 #include "services/identity/public/cpp/primary_account_mutator.h"
+#include "services/identity/public/cpp/primary_account_mutator_impl.h"
 #include "services/network/public/cpp/weak_wrapper_shared_url_loader_factory.h"
 #include "services/network/test/test_url_loader_factory.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -486,9 +487,12 @@ class IdentityManagerTest : public testing::Test {
     identity_manager_diagnostics_observer_.reset();
     identity_manager_.reset();
 
+    std::unique_ptr<PrimaryAccountMutator> primary_account_mutator =
+        std::make_unique<PrimaryAccountMutatorImpl>(&account_tracker_,
+                                                    signin_manager_.get());
     identity_manager_.reset(new IdentityManager(
         signin_manager_.get(), &token_service_, &account_tracker_,
-        &gaia_cookie_manager_service_, nullptr));
+        &gaia_cookie_manager_service_, std::move(primary_account_mutator)));
     identity_manager_observer_.reset(
         new TestIdentityManagerObserver(identity_manager_.get()));
     identity_manager_diagnostics_observer_.reset(
@@ -715,7 +719,9 @@ TEST_F(IdentityManagerTest, ClearPrimaryAccount_AuthInProgress) {
   // Simulate authentication in progress (id value not important, treated as
   // potentially invalid until authentication completes).
   signin_manager()->set_auth_in_progress("bogus_id");
-  EXPECT_TRUE(signin_manager()->AuthInProgress());
+  EXPECT_TRUE(identity_manager()
+                  ->GetPrimaryAccountMutator()
+                  ->LegacyIsPrimaryAccountAuthInProgress());
 
   // Add a secondary account to verify that its refresh token survives the
   // call to ClearPrimaryAccount(...) below.
@@ -747,7 +753,9 @@ TEST_F(IdentityManagerTest, ClearPrimaryAccount_AuthInProgress) {
   EXPECT_EQ(
       identity_manager_observer()->error_from_signin_failed_callback().state(),
       GoogleServiceAuthError::State::REQUEST_CANCELED);
-  EXPECT_FALSE(signin_manager()->AuthInProgress());
+  EXPECT_FALSE(identity_manager()
+                   ->GetPrimaryAccountMutator()
+                   ->LegacyIsPrimaryAccountAuthInProgress());
 
   // We didn't have a primary account to start with, we shouldn't have one now
   // either.
