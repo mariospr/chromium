@@ -363,7 +363,7 @@ AccountReconcilorTest::AccountReconcilorTest()
 
   account_tracker_.Initialize(&pref_service_, base::FilePath());
   cookie_manager_service_.SetListAccountsResponseHttpNotFound();
-  signin_manager_.Initialize(nullptr);
+  signin_manager_.Initialize(&pref_service_);
 
   // The reconcilor should not be built before the test can set the account
   // consistency method.

@@ -15,8 +15,10 @@
 #include "chrome/browser/signin/signin_manager_factory.h"
 #include "chrome/common/chrome_switches.h"
 #include "chrome/test/base/chrome_render_view_host_test_harness.h"
+#include "chrome/test/base/testing_browser_process.h"
 #include "chrome/test/base/testing_profile.h"
 #include "components/browser_sync/browser_sync_switches.h"
+#include "components/prefs/testing_pref_service.h"
 #include "components/signin/core/browser/account_tracker_service.h"
 #include "components/signin/core/browser/fake_signin_manager.h"
 #include "content/public/browser/navigation_entry.h"
@@ -48,7 +50,7 @@ class OneClickSigninSyncStarterTest : public ChromeRenderViewHostTestHarness {
     SigninManagerBase* signin_manager =
         SigninManagerFactory::GetForProfile(profile());
 
-    signin_manager->Initialize(nullptr);
+    signin_manager->Initialize(&local_state_);
     signin_manager->SetAuthenticatedAccountInfo(kTestingGaiaId,
                                                 kTestingUsername);
   }
@@ -101,6 +103,8 @@ class OneClickSigninSyncStarterTest : public ChromeRenderViewHostTestHarness {
         AccountTrackerServiceFactory::GetForProfile(profile),
         GaiaCookieManagerServiceFactory::GetForProfile(profile));
   }
+
+  TestingPrefServiceSimple local_state_;
 
   DISALLOW_COPY_AND_ASSIGN(OneClickSigninSyncStarterTest);
 };

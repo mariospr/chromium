@@ -265,14 +265,16 @@ void SigninManager::OnSignoutDecisionReached(
 void SigninManager::Initialize(PrefService* local_state) {
   SigninManagerBase::Initialize(local_state);
 
-  // local_state can be null during unit tests.
-  if (local_state) {
-    local_state_pref_registrar_.Init(local_state);
-    local_state_pref_registrar_.Add(
-        prefs::kGoogleServicesUsernamePattern,
-        base::Bind(&SigninManager::OnGoogleServicesUsernamePatternChanged,
-                   weak_pointer_factory_.GetWeakPtr()));
-  }
+  // Local state should never be null, not even during unit tests.
+  DCHECK(local_state != nullptr);
+
+  local_state_pref_registrar_.Init(local_state);
+  local_state_pref_registrar_.Add(
+      prefs::kGoogleServicesUsernamePattern,
+      base::BindRepeating(
+          &SigninManager::OnGoogleServicesUsernamePatternChanged,
+          weak_pointer_factory_.GetWeakPtr()));
+
   signin_allowed_.Init(prefs::kSigninAllowed,
                        client_->GetPrefs(),
                        base::Bind(&SigninManager::OnSigninAllowedPrefChanged,
@@ -343,9 +345,6 @@ SigninManager* SigninManager::FromSigninManagerBase(
 
 bool SigninManager::IsAllowedUsername(const std::string& username) const {
   const PrefService* local_state = local_state_pref_registrar_.prefs();
-  if (!local_state)
-    return true;  // In a unit test with no local state - all names are allowed.
-
   std::string pattern =
       local_state->GetString(prefs::kGoogleServicesUsernamePattern);
   return identity::IsUsernameAllowedByPattern(username, pattern);

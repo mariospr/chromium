@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "build/build_config.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/signin/account_tracker_service_factory.h"
 #include "chrome/browser/signin/chrome_signin_client_factory.h"
@@ -20,7 +21,7 @@ std::unique_ptr<KeyedService> BuildFakeSigninManagerForTesting(
   std::unique_ptr<SigninManagerBase> manager;
   Profile* profile = static_cast<Profile*>(context);
   manager.reset(new FakeSigninManagerForTesting(profile));
-  manager->Initialize(nullptr);
+  manager->Initialize(g_browser_process->local_state());
   SigninManagerFactory::GetInstance()
       ->NotifyObserversOfSigninManagerCreationForTesting(manager.get());
   return std::move(manager);

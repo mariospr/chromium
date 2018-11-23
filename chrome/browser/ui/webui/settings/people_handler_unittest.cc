@@ -15,6 +15,7 @@
 #include "base/stl_util.h"
 #include "base/values.h"
 #include "build/build_config.h"
+#include "chrome/browser/prefs/browser_prefs.h"
 #include "chrome/browser/signin/identity_test_environment_profile_adaptor.h"
 #include "chrome/browser/signin/profile_oauth2_token_service_factory.h"
 #include "chrome/browser/signin/scoped_account_consistency.h"
@@ -201,6 +202,10 @@ class PeopleHandlerTest : public ChromeRenderViewHostTestHarness {
     ChromeRenderViewHostTestHarness::SetUp();
     error_ = GoogleServiceAuthError::AuthErrorNone();
 
+    local_state_.reset(new TestingPrefServiceSimple);
+    RegisterLocalState(local_state_->registry());
+    TestingBrowserProcess::GetGlobal()->SetLocalState(local_state_.get());
+
     // Sign in the user.
     identity_test_env_adaptor_ =
         std::make_unique<IdentityTestEnvironmentProfileAdaptor>(profile());
@@ -235,6 +240,10 @@ class PeopleHandlerTest : public ChromeRenderViewHostTestHarness {
     handler_->DisallowJavascript();
     handler_->sync_startup_tracker_.reset();
     identity_test_env_adaptor_.reset();
+
+    TestingBrowserProcess::GetGlobal()->SetLocalState(NULL);
+    local_state_.reset();
+
     ChromeRenderViewHostTestHarness::TearDown();
   }
 
@@ -342,6 +351,7 @@ class PeopleHandlerTest : public ChromeRenderViewHostTestHarness {
   content::TestWebUI web_ui_;
   TestWebUIProvider test_provider_;
   std::unique_ptr<TestChromeWebUIControllerFactory> test_factory_;
+  std::unique_ptr<TestingPrefServiceSimple> local_state_;
   std::unique_ptr<TestingPeopleHandler> handler_;
 };
 
@@ -1027,11 +1037,26 @@ TEST_F(PeopleHandlerTest, TurnOnEncryptAllDisallowed) {
 
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
 class PeopleHandlerDiceUnifiedConsentTest
-    : public ::testing::TestWithParam<std::tuple<bool, bool>> {};
+    : public ::testing::TestWithParam<std::tuple<bool, bool>> {
+ public:
+  void SetUp() override {
+    local_state_.reset(new TestingPrefServiceSimple);
+    RegisterLocalState(local_state_->registry());
+    TestingBrowserProcess::GetGlobal()->SetLocalState(local_state_.get());
+  }
+
+  void TearDown() override {
+    TestingBrowserProcess::GetGlobal()->SetLocalState(nullptr);
+    local_state_.reset();
+  }
+
+ protected:
+  content::TestBrowserThreadBundle test_browser_thread_bundle;
+  std::unique_ptr<TestingPrefServiceSimple> local_state_;
+  std::unique_ptr<TestingProfile> testing_profile_;
+};
 
 TEST_P(PeopleHandlerDiceUnifiedConsentTest, StoredAccountsList) {
-  content::TestBrowserThreadBundle test_browser_thread_bundle;
-
   // Decode test parameters.
   bool dice_enabled;
   bool unified_consent_enabled;

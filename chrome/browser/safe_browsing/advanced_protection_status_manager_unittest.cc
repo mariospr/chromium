@@ -5,9 +5,11 @@
 #include "chrome/browser/safe_browsing/advanced_protection_status_manager.h"
 
 #include "base/bind.h"
+#include "chrome/browser/prefs/browser_prefs.h"
 #include "chrome/browser/safe_browsing/advanced_protection_status_manager_factory.h"
 #include "chrome/browser/signin/account_tracker_service_factory.h"
 #include "chrome/browser/signin/identity_test_environment_profile_adaptor.h"
+#include "chrome/test/base/testing_browser_process.h"
 #include "chrome/test/base/testing_profile.h"
 #include "components/prefs/pref_service.h"
 #include "components/safe_browsing/common/safe_browsing_prefs.h"
@@ -29,7 +31,15 @@ static const char* kIdTokenAdvancedProtectionDisabled =
 
 class AdvancedProtectionStatusManagerTest : public testing::Test {
  public:
-  AdvancedProtectionStatusManagerTest() {
+  AdvancedProtectionStatusManagerTest() {}
+
+  ~AdvancedProtectionStatusManagerTest() override {}
+
+  void SetUp() override {
+    local_state_.reset(new TestingPrefServiceSimple);
+    RegisterLocalState(local_state_->registry());
+    TestingBrowserProcess::GetGlobal()->SetLocalState(local_state_.get());
+
     testing_profile_ = IdentityTestEnvironmentProfileAdaptor::
         CreateProfileForIdentityTestEnvironment();
 
@@ -41,7 +51,13 @@ class AdvancedProtectionStatusManagerTest : public testing::Test {
         AccountTrackerServiceFactory::GetForProfile(testing_profile_.get());
   }
 
-  ~AdvancedProtectionStatusManagerTest() override {}
+  void TearDown() override {
+    TestingBrowserProcess::GetGlobal()->SetLocalState(nullptr);
+    account_tracker_service_ = nullptr;
+    identity_test_env_adaptor_.reset();
+    testing_profile_.reset();
+    local_state_.reset();
+  }
 
   std::string SignIn(const std::string& email,
                      bool is_under_advanced_protection) {
@@ -82,10 +98,11 @@ class AdvancedProtectionStatusManagerTest : public testing::Test {
 
  protected:
   content::TestBrowserThreadBundle thread_bundle;
+  std::unique_ptr<TestingPrefServiceSimple> local_state_;
   std::unique_ptr<TestingProfile> testing_profile_;
   std::unique_ptr<IdentityTestEnvironmentProfileAdaptor>
       identity_test_env_adaptor_;
-  AccountTrackerService* account_tracker_service_;
+  AccountTrackerService* account_tracker_service_ = nullptr;
 };
 
 }  // namespace

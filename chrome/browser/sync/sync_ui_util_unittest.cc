@@ -10,6 +10,7 @@
 #include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
 #include "build/build_config.h"
+#include "chrome/browser/prefs/browser_prefs.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/signin/account_tracker_service_factory.h"
 #include "chrome/browser/signin/chrome_signin_client_factory.h"
@@ -18,8 +19,10 @@
 #include "chrome/browser/signin/signin_manager_factory.h"
 #include "chrome/browser/sync/profile_sync_test_util.h"
 #include "chrome/browser/sync/sync_ui_util.h"
+#include "chrome/test/base/testing_browser_process.h"
 #include "chrome/test/base/testing_profile.h"
 #include "components/browser_sync/profile_sync_service_mock.h"
+#include "components/prefs/testing_pref_service.h"
 #include "components/signin/core/browser/fake_signin_manager.h"
 #include "components/signin/core/browser/profile_oauth2_token_service.h"
 #include "components/signin/core/browser/signin_manager.h"
@@ -63,8 +66,21 @@ const char kTestUser[] = "test_user@test.com";
 }  // namespace
 
 class SyncUIUtilTest : public testing::Test {
+ public:
+  void SetUp() override {
+    local_state_.reset(new TestingPrefServiceSimple);
+    RegisterLocalState(local_state_->registry());
+    TestingBrowserProcess::GetGlobal()->SetLocalState(local_state_.get());
+  }
+
+  void TearDown() override {
+    TestingBrowserProcess::GetGlobal()->SetLocalState(nullptr);
+    local_state_.reset();
+  }
+
  private:
   content::TestBrowserThreadBundle thread_bundle_;
+  std::unique_ptr<TestingPrefServiceSimple> local_state_;
 };
 
 // TODO(tim): This shouldn't be required. r194857 removed the
@@ -83,7 +99,7 @@ class FakeSigninManagerForSyncUIUtilTest : public FakeSigninManagerBase {
             AccountTrackerServiceFactory::GetForProfile(profile),
             SigninErrorControllerFactory::GetForProfile(profile)),
         auth_in_progress_(false) {
-    Initialize(nullptr);
+    Initialize(g_browser_process->local_state());
   }
 
   ~FakeSigninManagerForSyncUIUtilTest() override {}
