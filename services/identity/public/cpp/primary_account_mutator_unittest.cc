@@ -136,30 +136,6 @@ TEST_F(PrimaryAccountMutatorTest,
       primary_account_info.account_id));
 }
 
-TEST_F(PrimaryAccountMutatorTest, ClearPrimaryAccount_NotSignedIn) {
-  // Abort the test if the current platform does not support mutation of the
-  // primary account (the returned PrimaryAccountMutator* will be null).
-  if (!primary_account_mutator())
-    return;
-
-  // Trying to signout an account that hasn't signed in first should fail.
-  EXPECT_FALSE(identity_manager()->HasPrimaryAccount());
-  EXPECT_FALSE(primary_account_mutator()->ClearPrimaryAccount(
-      identity::PrimaryAccountMutator::ClearAccountsAction::kDefault,
-      signin_metrics::SIGNOUT_TEST,
-      signin_metrics::SignoutDelete::IGNORE_METRIC));
-
-  // Adding an account without signing in should yield similar a result.
-  AccountInfo primary_account_info =
-      environment()->MakeAccountAvailable(kPrimaryAccountEmail);
-
-  EXPECT_FALSE(identity_manager()->HasPrimaryAccount());
-  EXPECT_FALSE(primary_account_mutator()->ClearPrimaryAccount(
-      identity::PrimaryAccountMutator::ClearAccountsAction::kDefault,
-      signin_metrics::SIGNOUT_TEST,
-      signin_metrics::SignoutDelete::IGNORE_METRIC));
-}
-
 TEST_F(PrimaryAccountMutatorTest, ClearPrimaryAccount_Default) {
   if (!primary_account_mutator())
     return;

@@ -41,8 +41,6 @@ bool PrimaryAccountMutatorImpl::ClearPrimaryAccount(
     ClearAccountsAction action,
     signin_metrics::ProfileSignout source_metric,
     signin_metrics::SignoutDelete delete_metric) {
-  if (!signin_manager_->IsAuthenticated())
-    return false;
 
   // TODO: report failure if SignOut is not allowed.
 
