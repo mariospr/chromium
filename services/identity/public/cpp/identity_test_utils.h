@@ -120,6 +120,11 @@ void SetCookieAccounts(FakeGaiaCookieManagerService* cookie_manager,
                        IdentityManager* identity_manager,
                        const std::vector<CookieParams>& cookie_accounts);
 
+// TODO: document this
+void GetCookieAccounts(FakeGaiaCookieManagerService* cookie_manager,
+                       std::vector<const std::string>* account_ids,
+                       std::vector<const std::string>* signed_out_account_ids);
+
 // Updates the info for |account_info.account_id|, which must be a known
 // account.
 void UpdateAccountInfoForAccount(IdentityManager* identity_manager,

@@ -355,6 +355,40 @@ TEST_F(PrimaryAccountMutatorTest, SigninWithRefreshToken) {
   EXPECT_EQ(primary_account_id_1, primary_account_id_2);
 }
 
+TEST_F(PrimaryAccountMutatorTest, MergeSigninCredentialIntoCookieJar) {
+  // Abort the test if the current platform does not support mutation of the
+  // primary account (the returned PrimaryAccountMutator* will be null).
+  if (!primary_account_mutator())
+    return;
+
+  std::vector<const std::string> accounts;
+  std::vector<const std::string> signed_out_accounts;
+  environment()->GetAccountIdsInCookieJar(&accounts, &signed_out_accounts);
+
+  EXPECT_TRUE(accounts.empty());
+  EXPECT_TRUE(signed_out_accounts.empty());
+
+  AccountInfo account_info =
+      environment()->MakeAccountAvailable(kPrimaryAccountEmail);
+
+  EXPECT_FALSE(identity_manager()->HasPrimaryAccount());
+  EXPECT_TRUE(
+      primary_account_mutator()->SetPrimaryAccount(account_info.account_id));
+
+  EXPECT_TRUE(identity_manager()->HasPrimaryAccount());
+  EXPECT_EQ(identity_manager()->GetPrimaryAccountId(), account_info.account_id);
+
+  environment()->GetAccountIdsInCookieJar(&accounts, &signed_out_accounts);
+  EXPECT_TRUE(accounts.empty());
+  EXPECT_TRUE(signed_out_accounts.empty());
+
+  primary_account_mutator()->LegacyMergeSigninCredentialIntoCookieJar();
+
+  environment()->GetAccountIdsInCookieJar(&accounts, &signed_out_accounts);
+  EXPECT_TRUE(accounts.empty());
+  EXPECT_TRUE(signed_out_accounts.empty());
+}
+
 // Checks that checking whether an authentication process is in progress reports
 // true before starting and after successfully completing the signin process.
 TEST_F(PrimaryAccountMutatorTest, AuthInProgress_SigninCompleted) {

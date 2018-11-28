@@ -263,6 +263,13 @@ void IdentityTestEnvironment::SetAutomaticIssueOfAccessTokens(bool grant) {
   token_service_->set_auto_post_fetch_response_on_message_loop(grant);
 }
 
+void IdentityTestEnvironment::GetAccountIdsInCookieJar(
+    std::vector<const std::string>* account_ids,
+    std::vector<const std::string>* signed_out_account_ids) {
+  identity::GetCookieAccounts(gaia_cookie_manager_service_, account_ids,
+                              signed_out_account_ids);
+}
+
 void IdentityTestEnvironment::
     WaitForAccessTokenRequestIfNecessaryAndRespondWithToken(
         const std::string& token,

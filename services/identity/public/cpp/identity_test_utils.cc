@@ -330,6 +330,28 @@ void SetCookieAccounts(FakeGaiaCookieManagerService* cookie_manager,
   run_loop.Run();
 }
 
+void GetCookieAccounts(FakeGaiaCookieManagerService* cookie_manager,
+                       std::vector<const std::string>* account_ids,
+                       std::vector<const std::string>* signed_out_account_ids) {
+  std::vector<gaia::ListedAccount> accounts;
+  std::vector<gaia::ListedAccount> signed_out_accounts;
+
+  base::RunLoop run_loop;
+  cookie_manager->TriggerListAccounts();
+  cookie_manager->ListAccounts(&accounts, &signed_out_accounts);
+  run_loop.RunUntilIdle();
+
+  if (account_ids != nullptr) {
+    for (auto account : accounts)
+      account_ids->push_back(account.id);
+  }
+
+  if (signed_out_account_ids != nullptr) {
+    for (auto signed_out_account : signed_out_accounts)
+      signed_out_account_ids->push_back(signed_out_account.id);
+  }
+}
+
 void UpdateAccountInfoForAccount(IdentityManager* identity_manager,
                                  AccountInfo account_info) {
   // Make sure the account being updated is a known account.

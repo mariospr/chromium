@@ -130,6 +130,11 @@ class IdentityTestEnvironment : public IdentityManager::DiagnosticsObserver {
   // an access token value of "access_token".
   void SetAutomaticIssueOfAccessTokens(bool grant);
 
+  // TODO: document this
+  void GetAccountIdsInCookieJar(
+      std::vector<const std::string>* account_ids,
+      std::vector<const std::string>* signed_out_account_ids);
+
   // Issues |token| in response to any access token request that either has (a)
   // already occurred and has not been matched by a previous call to this or
   // other WaitFor... method, or (b) will occur in the future. In the latter
