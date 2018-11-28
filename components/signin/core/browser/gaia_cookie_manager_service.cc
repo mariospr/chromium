@@ -479,26 +479,36 @@ void GaiaCookieManagerService::SetAccountsInCookieWithTokens() {
 void GaiaCookieManagerService::AddAccountToCookieInternal(
     const std::string& account_id,
     gaia::GaiaSource source) {
+
+  VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__ << std::endl;
+
   DCHECK(!account_id.empty());
+  VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__ << std::endl;
   if (!signin_client_->AreSigninCookiesAllowed()) {
+  VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__ << std::endl;
     SignalComplete(account_id,
         GoogleServiceAuthError(GoogleServiceAuthError::REQUEST_CANCELED));
     return;
   }
 
+  VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__ << std::endl;
   requests_.push_back(
       GaiaCookieRequest::CreateAddAccountRequest(account_id, source));
   if (requests_.size() == 1) {
+  VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__ << std::endl;
     signin_client_->DelayNetworkCall(
         base::Bind(&GaiaCookieManagerService::StartFetchingUbertoken,
                    base::Unretained(this)));
   }
+  VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__ << std::endl;
 }
 
 void GaiaCookieManagerService::AddAccountToCookie(const std::string& account_id,
                                                   gaia::GaiaSource source) {
   VLOG(1) << "GaiaCookieManagerService::AddAccountToCookie: " << account_id;
   access_token_ = std::string();
+  VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__ << std::endl;
+
   AddAccountToCookieInternal(account_id, source);
 }
 
