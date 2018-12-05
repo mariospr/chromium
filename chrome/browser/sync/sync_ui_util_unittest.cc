@@ -32,6 +32,17 @@
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
+#include "chrome/browser/signin/fake_profile_oauth2_token_service_builder.h"
+#include "components/signin/core/browser/account_tracker_service.h"
+#include "components/signin/core/browser/fake_gaia_cookie_manager_service.h"
+#include "services/identity/public/cpp/identity_test_environment.h"
+#include "services/identity/public/cpp/identity_test_utils.h"
+#include "services/identity/public/cpp/primary_account_mutator.h"
+
+#if !defined(OS_CHROMEOS)
+#include "services/identity/public/cpp/primary_account_mutator_impl.h"
+#endif  // OS_CHROMEOS
+
 using ::testing::AtMost;
 using ::testing::NiceMock;
 using ::testing::Return;
@@ -58,10 +69,8 @@ enum DistinctState {
 };
 
 namespace {
-
 const char kTestGaiaId[] = "gaia-id-test_user@test.com";
 const char kTestUser[] = "test_user@test.com";
-
 }  // namespace
 
 class SyncUIUtilTest : public testing::Test {
@@ -288,14 +297,24 @@ TEST_F(SyncUIUtilTest, DistinctCasesReportUniqueMessageSets) {
     signin.SetAuthenticatedAccountInfo(kTestGaiaId, kTestUser);
     ProfileOAuth2TokenService* token_service =
         ProfileOAuth2TokenServiceFactory::GetForProfile(profile.get());
+    std::unique_ptr<FakeGaiaCookieManagerService> cookie_service =
+        std::make_unique<FakeGaiaCookieManagerService>(
+            token_service,
+            ChromeSigninClientFactory::GetForProfile(profile.get()), true);
+    AccountTrackerService* account_tracker_service =
+        AccountTrackerServiceFactory::GetForProfile(profile.get());
+
+    std::unique_ptr<identity::IdentityManager> identity_manager =
+        std::make_unique<identity::IdentityManager>(
+            &signin, token_service, account_tracker_service,
+            cookie_service.get(), nullptr);
+
     GetDistinctCase(&service, &signin, token_service, idx);
     base::string16 status_label;
     base::string16 link_label;
     sync_ui_util::ActionType action_type = sync_ui_util::NO_ACTION;
-    sync_ui_util::GetStatusLabels(
-        profile.get(), &service,
-        *IdentityManagerFactory::GetForProfile(profile.get()), &status_label,
-        &link_label, &action_type);
+    sync_ui_util::GetStatusLabels(profile.get(), &service, *identity_manager,
+                                  &status_label, &link_label, &action_type);
 
     EXPECT_EQ(GetActionTypeforDistinctCase(idx), action_type);
     // If the status and link message combination is already present in the set
@@ -310,6 +329,11 @@ TEST_F(SyncUIUtilTest, DistinctCasesReportUniqueMessageSets) {
               base::string16::npos);
     base::string16 combined_label =
         status_label + base::ASCIIToUTF16("#") + link_label;
+    VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__
+            << " / combined_label: " << combined_label << std::endl;
+    for (auto message : messages)
+      VLOG(0) << "[" << __FILE__ << ":" << __LINE__ << "] :: " << __func__
+              << " / message: " << message << std::endl;
     EXPECT_TRUE(messages.find(combined_label) == messages.end()) <<
         "Duplicate message for case #" << idx << ": " << combined_label;
     messages.insert(combined_label);
