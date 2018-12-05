@@ -39,7 +39,7 @@ class PrimaryAccountMutatorImpl : public PrimaryAccountMutator {
       base::OnceCallback<void(const std::string&)> callback) override;
   void LegacyCompletePendingPrimaryAccountSignin() override;
   void LegacyMergeSigninCredentialIntoCookieJar() override;
-  bool LegacyIsPrimaryAccountAuthInProgress() const override;
+  virtual bool LegacyIsPrimaryAccountAuthInProgress() const override;
   AccountInfo LegacyPrimaryAccountForAuthInProgress() const override;
   void LegacyCopyCredentialsFrom(const PrimaryAccountMutator& source) override;
 

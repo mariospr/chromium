@@ -86,20 +86,20 @@ class SyncUIUtilTest : public testing::Test {
 // tests are unaffected, but STATUS_CASE_AUTHENTICATING can't exist in both
 // versions, so it we will require two separate tests, one using SigninManager
 // and one using SigninManagerBase (which require different setup procedures.
-class FakeSigninManagerForSyncUIUtilTest : public FakeSigninManagerBase {
+class PrimaryAccountMutatorForSyncUIUtilTest
+    : public identity::PrimaryAccountMutatorImpl {
  public:
-  explicit FakeSigninManagerForSyncUIUtilTest(Profile* profile)
-      : FakeSigninManagerBase(
-            ChromeSigninClientFactory::GetForProfile(profile),
+  explicit PrimaryAccountMutatorForSyncUIUtilTest(Profile* profile)
+      : identity::PrimaryAccountMutatorImpl(
             AccountTrackerServiceFactory::GetForProfile(profile),
-            SigninErrorControllerFactory::GetForProfile(profile)),
-        auth_in_progress_(false) {
-    Initialize(nullptr);
+            SigninManagerFactory::GetForProfile(profile)),
+        auth_in_progress_(false) {}
+
+  ~PrimaryAccountMutatorForSyncUIUtilTest() override {}
+
+  bool LegacyIsPrimaryAccountAuthInProgress() const override {
+    return auth_in_progress_;
   }
-
-  ~FakeSigninManagerForSyncUIUtilTest() override {}
-
-  bool AuthInProgress() const override { return auth_in_progress_; }
 
   void set_auth_in_progress() {
     auth_in_progress_ = true;
@@ -112,7 +112,8 @@ class FakeSigninManagerForSyncUIUtilTest : public FakeSigninManagerBase {
 // Loads a ProfileSyncServiceMock to emulate one of a number of distinct cases
 // in order to perform tests on the generated messages.
 void GetDistinctCase(ProfileSyncServiceMock* service,
-                     FakeSigninManagerForSyncUIUtilTest* signin,
+                     PrimaryAccountMutatorForSyncUIUtilTest* account_mutator,
+                     identity::IdentityManager* identity_manager,
                      ProfileOAuth2TokenService* token_service,
                      int case_number) {
   // Auth Error object is returned by reference in mock and needs to stay in
@@ -152,7 +153,7 @@ void GetDistinctCase(ProfileSyncServiceMock* service,
           .WillRepeatedly(DoAll(SetArgPointee<0>(status), Return(false)));
       EXPECT_CALL(*service, GetDisableReasons())
           .WillRepeatedly(Return(syncer::SyncService::DISABLE_REASON_NONE));
-      signin->set_auth_in_progress();
+      account_mutator->set_auth_in_progress();
       return;
     }
     case STATUS_CASE_AUTH_ERROR: {
@@ -165,13 +166,11 @@ void GetDistinctCase(ProfileSyncServiceMock* service,
       syncer::SyncEngine::Status status;
       EXPECT_CALL(*service, QueryDetailedSyncStatus(_))
           .WillRepeatedly(DoAll(SetArgPointee<0>(status), Return(false)));
-      std::string account_id = signin->GetAuthenticatedAccountId();
-      token_service->UpdateCredentials(account_id, "refresh_token");
-      // TODO(https://crbug.com/836212): Do not use the delegate directly,
-      // because it is internal API.
-      token_service->GetDelegate()->UpdateAuthError(
-          account_id,
-          GoogleServiceAuthError(GoogleServiceAuthError::SERVICE_ERROR));
+      std::string account_id = identity_manager->GetPrimaryAccountId();
+      identity::SetRefreshTokenForPrimaryAccount(identity_manager);
+      identity::UpdatePersistentErrorOfRefreshTokenForAccount(
+          identity_manager, account_id,
+          GoogleServiceAuthError(GoogleServiceAuthError::State::SERVICE_ERROR));
       EXPECT_CALL(*service, GetDisableReasons())
           .WillRepeatedly(Return(syncer::SyncService::DISABLE_REASON_NONE));
       return;
@@ -293,23 +292,41 @@ TEST_F(SyncUIUtilTest, DistinctCasesReportUniqueMessageSets) {
         CreateProfileSyncServiceParamsForTest(profile.get()));
     GoogleServiceAuthError error = GoogleServiceAuthError::AuthErrorNone();
     EXPECT_CALL(service, GetAuthError()).WillRepeatedly(ReturnRef(error));
-    FakeSigninManagerForSyncUIUtilTest signin(profile.get());
-    signin.SetAuthenticatedAccountInfo(kTestGaiaId, kTestUser);
+
     ProfileOAuth2TokenService* token_service =
         ProfileOAuth2TokenServiceFactory::GetForProfile(profile.get());
     std::unique_ptr<FakeGaiaCookieManagerService> cookie_service =
         std::make_unique<FakeGaiaCookieManagerService>(
             token_service,
             ChromeSigninClientFactory::GetForProfile(profile.get()), true);
-    AccountTrackerService* account_tracker_service =
+    AccountTrackerService* account_tracker =
         AccountTrackerServiceFactory::GetForProfile(profile.get());
+
+#if defined(OS_CHROMEOS)
+    std::unique_ptr<FakeSigninManagerBase> signin_manager =
+        std::make_unique<FakeSigninManagerBase>(
+            ChromeSigninClientFactory::GetForProfile(profile.get()),
+            &account_tracker_);
+#else
+    std::unique_ptr<FakeSigninManager> signin_manager =
+        std::make_unique<FakeSigninManager>(
+            ChromeSigninClientFactory::GetForProfile(profile.get()),
+            token_service, account_tracker, cookie_service.get());
+#endif
+
+    signin_manager->Initialize(profile->GetPrefs());
+    signin_manager->SetAuthenticatedAccountInfo(kTestGaiaId, kTestUser);
+
+    std::unique_ptr<PrimaryAccountMutatorForSyncUIUtilTest> account_mutator =
+        std::make_unique<PrimaryAccountMutatorForSyncUIUtilTest>(profile.get());
 
     std::unique_ptr<identity::IdentityManager> identity_manager =
         std::make_unique<identity::IdentityManager>(
-            &signin, token_service, account_tracker_service,
-            cookie_service.get(), nullptr);
+            signin_manager.get(), token_service, account_tracker,
+            cookie_service.get(), std::move(account_mutator));
 
-    GetDistinctCase(&service, &signin, token_service, idx);
+    GetDistinctCase(&service, account_mutator.get(), identity_manager.get(),
+                    token_service, idx);
     base::string16 status_label;
     base::string16 link_label;
     sync_ui_util::ActionType action_type = sync_ui_util::NO_ACTION;
@@ -338,9 +355,9 @@ TEST_F(SyncUIUtilTest, DistinctCasesReportUniqueMessageSets) {
         "Duplicate message for case #" << idx << ": " << combined_label;
     messages.insert(combined_label);
     testing::Mock::VerifyAndClearExpectations(&service);
-    testing::Mock::VerifyAndClearExpectations(&signin);
+    testing::Mock::VerifyAndClearExpectations(&account_mutator);
     EXPECT_CALL(service, GetAuthError()).WillRepeatedly(ReturnRef(error));
-    signin.Shutdown();
+    signin_manager->Shutdown();
   }
 }
 
