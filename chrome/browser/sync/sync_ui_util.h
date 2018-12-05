@@ -9,7 +9,6 @@
 #include "build/build_config.h"
 
 class Profile;
-class SigninManagerBase;
 
 namespace identity {
 class IdentityManager;
@@ -60,7 +59,7 @@ enum AvatarSyncErrorType {
 // by querying |service|.
 MessageType GetStatusLabels(Profile* profile,
                             const syncer::SyncService* service,
-                            const SigninManagerBase& signin,
+                            const identity::IdentityManager& identity_manager,
                             base::string16* status_label,
                             base::string16* link_label,
                             ActionType* action_type);
@@ -77,7 +76,7 @@ AvatarSyncErrorType GetMessagesForAvatarSyncError(
 
 MessageType GetStatus(Profile* profile,
                       const syncer::SyncService* service,
-                      const SigninManagerBase& signin);
+                      const identity::IdentityManager& identity_manager);
 
 // Whether sync is currently blocked from starting because the sync
 // confirmation dialog hasn't been shown. Note that once the dialog is

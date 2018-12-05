@@ -13,6 +13,7 @@
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/signin/account_tracker_service_factory.h"
 #include "chrome/browser/signin/chrome_signin_client_factory.h"
+#include "chrome/browser/signin/identity_manager_factory.h"
 #include "chrome/browser/signin/profile_oauth2_token_service_factory.h"
 #include "chrome/browser/signin/signin_error_controller_factory.h"
 #include "chrome/browser/signin/signin_manager_factory.h"
@@ -26,6 +27,7 @@
 #include "content/public/test/test_browser_thread.h"
 #include "content/public/test/test_browser_thread_bundle.h"
 #include "google_apis/gaia/oauth2_token_service_delegate.h"
+#include "services/identity/public/cpp/identity_manager.h"
 #include "testing/gmock/include/gmock/gmock-actions.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -290,8 +292,10 @@ TEST_F(SyncUIUtilTest, DistinctCasesReportUniqueMessageSets) {
     base::string16 status_label;
     base::string16 link_label;
     sync_ui_util::ActionType action_type = sync_ui_util::NO_ACTION;
-    sync_ui_util::GetStatusLabels(profile.get(), &service, signin,
-                                  &status_label, &link_label, &action_type);
+    sync_ui_util::GetStatusLabels(
+        profile.get(), &service,
+        *IdentityManagerFactory::GetForProfile(profile.get()), &status_label,
+        &link_label, &action_type);
 
     EXPECT_EQ(GetActionTypeforDistinctCase(idx), action_type);
     // If the status and link message combination is already present in the set
@@ -318,8 +322,8 @@ TEST_F(SyncUIUtilTest, DistinctCasesReportUniqueMessageSets) {
 
 TEST_F(SyncUIUtilTest, UnrecoverableErrorWithActionableError) {
   std::unique_ptr<Profile> profile(MakeSignedInTestingProfile());
-  SigninManagerBase* signin =
-      SigninManagerFactory::GetForProfile(profile.get());
+  identity::IdentityManager* identity_manager =
+      IdentityManagerFactory::GetForProfile(profile.get());
 
   ProfileSyncServiceMock service(
       CreateProfileSyncServiceParamsForTest(profile.get()));
@@ -336,7 +340,7 @@ TEST_F(SyncUIUtilTest, UnrecoverableErrorWithActionableError) {
   base::string16 link_label;
   base::string16 unrecoverable_error_status_label;
   sync_ui_util::ActionType action_type = sync_ui_util::NO_ACTION;
-  sync_ui_util::GetStatusLabels(profile.get(), &service, *signin,
+  sync_ui_util::GetStatusLabels(profile.get(), &service, *identity_manager,
                                 &unrecoverable_error_status_label, &link_label,
                                 &action_type);
 
@@ -349,7 +353,7 @@ TEST_F(SyncUIUtilTest, UnrecoverableErrorWithActionableError) {
   EXPECT_CALL(service, QueryDetailedSyncStatus(_))
       .WillOnce(DoAll(SetArgPointee<0>(status), Return(true)));
   base::string16 upgrade_client_status_label;
-  sync_ui_util::GetStatusLabels(profile.get(), &service, *signin,
+  sync_ui_util::GetStatusLabels(profile.get(), &service, *identity_manager,
                                 &upgrade_client_status_label, &link_label,
                                 &action_type);
   // Expect an explicit 'client upgrade' action.
@@ -360,8 +364,8 @@ TEST_F(SyncUIUtilTest, UnrecoverableErrorWithActionableError) {
 
 TEST_F(SyncUIUtilTest, ActionableErrorWithPassiveMessage) {
   std::unique_ptr<Profile> profile(MakeSignedInTestingProfile());
-  SigninManagerBase* signin =
-      SigninManagerFactory::GetForProfile(profile.get());
+  identity::IdentityManager* identity_manager =
+      IdentityManagerFactory::GetForProfile(profile.get());
 
   ProfileSyncServiceMock service(
       CreateProfileSyncServiceParamsForTest(profile.get()));
@@ -379,7 +383,7 @@ TEST_F(SyncUIUtilTest, ActionableErrorWithPassiveMessage) {
   base::string16 first_actionable_error_status_label;
   base::string16 link_label;
   sync_ui_util::ActionType action_type = sync_ui_util::NO_ACTION;
-  sync_ui_util::GetStatusLabels(profile.get(), &service, *signin,
+  sync_ui_util::GetStatusLabels(profile.get(), &service, *identity_manager,
                                 &first_actionable_error_status_label,
                                 &link_label, &action_type);
   // Expect a 'client upgrade' call to action.
@@ -392,7 +396,7 @@ TEST_F(SyncUIUtilTest, ActionableErrorWithPassiveMessage) {
 
   base::string16 second_actionable_error_status_label;
   action_type = sync_ui_util::NO_ACTION;
-  sync_ui_util::GetStatusLabels(profile.get(), &service, *signin,
+  sync_ui_util::GetStatusLabels(profile.get(), &service, *identity_manager,
                                 &second_actionable_error_status_label,
                                 &link_label, &action_type);
   // Expect a passive message instead of a call to action.
@@ -404,8 +408,8 @@ TEST_F(SyncUIUtilTest, ActionableErrorWithPassiveMessage) {
 
 TEST_F(SyncUIUtilTest, SyncSettingsConfirmationNeededTest) {
   std::unique_ptr<Profile> profile(MakeSignedInTestingProfile());
-  SigninManagerBase* signin =
-      SigninManagerFactory::GetForProfile(profile.get());
+  identity::IdentityManager* identity_manager =
+      IdentityManagerFactory::GetForProfile(profile.get());
 
   NiceMock<ProfileSyncServiceMock> service(
       CreateProfileSyncServiceParamsForTest(profile.get()));
@@ -415,7 +419,7 @@ TEST_F(SyncUIUtilTest, SyncSettingsConfirmationNeededTest) {
   base::string16 link_label;
   sync_ui_util::ActionType action_type = sync_ui_util::NO_ACTION;
 
-  sync_ui_util::GetStatusLabels(profile.get(), &service, *signin,
+  sync_ui_util::GetStatusLabels(profile.get(), &service, *identity_manager,
                                 &actionable_error_status_label, &link_label,
                                 &action_type);
 

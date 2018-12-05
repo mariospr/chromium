@@ -241,7 +241,7 @@ class IdentityManager : public SigninManagerBase::Observer,
   // Returns pointer to the object used to change the signed-in state of the
   // primary account, if supported on the current platform. Otherwise, returns
   // null.
-  PrimaryAccountMutator* GetPrimaryAccountMutator();
+  PrimaryAccountMutator* GetPrimaryAccountMutator() const;
 
   // Returns pointer to the object used to seed accounts and mutate state of
   // accounts' refresh tokens. Guaranteed to be non-null.

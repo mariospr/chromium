@@ -162,7 +162,7 @@ void IdentityManager::RemoveAccessTokenFromCache(
   token_service_->InvalidateAccessToken(account_id, scopes, access_token);
 }
 
-PrimaryAccountMutator* IdentityManager::GetPrimaryAccountMutator() {
+PrimaryAccountMutator* IdentityManager::GetPrimaryAccountMutator() const {
   return primary_account_mutator_.get();
 }
 
