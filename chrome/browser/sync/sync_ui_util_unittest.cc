@@ -21,8 +21,6 @@
 #include "chrome/browser/sync/sync_ui_util.h"
 #include "chrome/test/base/testing_profile.h"
 #include "components/browser_sync/profile_sync_service_mock.h"
-#include "components/signin/core/browser/account_tracker_service.h"
-#include "components/signin/core/browser/fake_gaia_cookie_manager_service.h"
 #include "components/signin/core/browser/fake_signin_manager.h"
 #include "components/signin/core/browser/profile_oauth2_token_service.h"
 #include "components/signin/core/browser/signin_manager.h"
@@ -30,9 +28,6 @@
 #include "content/public/test/test_browser_thread_bundle.h"
 #include "google_apis/gaia/oauth2_token_service_delegate.h"
 #include "services/identity/public/cpp/identity_manager.h"
-#include "services/identity/public/cpp/identity_test_environment.h"
-#include "services/identity/public/cpp/identity_test_utils.h"
-#include "services/identity/public/cpp/primary_account_mutator.h"
 #include "testing/gmock/include/gmock/gmock-actions.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -63,7 +58,10 @@ enum DistinctState {
 };
 
 namespace {
+
+const char kTestGaiaId[] = "gaia-id-test_user@test.com";
 const char kTestUser[] = "test_user@test.com";
+
 }  // namespace
 
 class SyncUIUtilTest : public testing::Test {
@@ -71,33 +69,21 @@ class SyncUIUtilTest : public testing::Test {
   content::TestBrowserThreadBundle thread_bundle_;
 };
 
-// TODO(tim): This shouldn't be required. r194857 removed the AuthInProgress
-// override from FakeSigninManager, which meant this test started using the
-// "real" SigninManager AuthInProgress logic. Without that override, it's no
-// longer possible to test both chrome os + desktop flows as part of the same
-// test, because AuthInProgress is always false on chrome os. Most of the tests
-// are unaffected, but STATUS_CASE_AUTHENTICATING can't exist in both versions,
-// so it we will require two separate tests, one using SigninManager and one
-// using SigninManagerBase (which require different setup procedures.
-class FakeSigninManagerForSyncUIUtilTest
-    : public identity::SigninManagerForTest {
+// TODO(tim): This shouldn't be required. r194857 removed the
+// AuthInProgress override from FakeSigninManager, which meant this test started
+// using the "real" SigninManager AuthInProgress logic. Without that override,
+// it's no longer possible to test both chrome os + desktop flows as part of the
+// same test, because AuthInProgress is always false on chrome os. Most of the
+// tests are unaffected, but STATUS_CASE_AUTHENTICATING can't exist in both
+// versions, so it we will require two separate tests, one using SigninManager
+// and one using SigninManagerBase (which require different setup procedures.
+class FakeSigninManagerForSyncUIUtilTest : public FakeSigninManagerBase {
  public:
-  explicit FakeSigninManagerForSyncUIUtilTest(
-      Profile* profile,
-      ProfileOAuth2TokenService* token_service,
-      GaiaCookieManagerService* cookie_service)
-      : identity::SigninManagerForTest(
-#if defined(OS_CHROMEOS)
+  explicit FakeSigninManagerForSyncUIUtilTest(Profile* profile)
+      : FakeSigninManagerBase(
             ChromeSigninClientFactory::GetForProfile(profile),
             AccountTrackerServiceFactory::GetForProfile(profile),
-            SigninErrorControllerFactory::GetForProfile(profile)
-#else
-            ChromeSigninClientFactory::GetForProfile(profile),
-            token_service,
-            AccountTrackerServiceFactory::GetForProfile(profile),
-            cookie_service
-#endif
-                ),
+            SigninErrorControllerFactory::GetForProfile(profile)),
         auth_in_progress_(false) {
     Initialize(nullptr);
   }
@@ -118,8 +104,7 @@ class FakeSigninManagerForSyncUIUtilTest
 // in order to perform tests on the generated messages.
 void GetDistinctCase(ProfileSyncServiceMock* service,
                      FakeSigninManagerForSyncUIUtilTest* signin,
-                     identity::IdentityManager* identity_manager,
-                     AccountInfo& account_info,
+                     ProfileOAuth2TokenService* token_service,
                      int case_number) {
   // Auth Error object is returned by reference in mock and needs to stay in
   // scope throughout test, so it is owned by calling method. However it is
@@ -171,11 +156,13 @@ void GetDistinctCase(ProfileSyncServiceMock* service,
       syncer::SyncEngine::Status status;
       EXPECT_CALL(*service, QueryDetailedSyncStatus(_))
           .WillRepeatedly(DoAll(SetArgPointee<0>(status), Return(false)));
-      std::string account_id = identity_manager->GetPrimaryAccountId();
-      identity::SetRefreshTokenForPrimaryAccount(identity_manager);
-      identity::UpdatePersistentErrorOfRefreshTokenForAccount(
-          identity_manager, account_id,
-          GoogleServiceAuthError(GoogleServiceAuthError::State::SERVICE_ERROR));
+      std::string account_id = signin->GetAuthenticatedAccountId();
+      token_service->UpdateCredentials(account_id, "refresh_token");
+      // TODO(https://crbug.com/836212): Do not use the delegate directly,
+      // because it is internal API.
+      token_service->GetDelegate()->UpdateAuthError(
+          account_id,
+          GoogleServiceAuthError(GoogleServiceAuthError::SERVICE_ERROR));
       EXPECT_CALL(*service, GetDisableReasons())
           .WillRepeatedly(Return(syncer::SyncService::DISABLE_REASON_NONE));
       return;
@@ -297,35 +284,18 @@ TEST_F(SyncUIUtilTest, DistinctCasesReportUniqueMessageSets) {
         CreateProfileSyncServiceParamsForTest(profile.get()));
     GoogleServiceAuthError error = GoogleServiceAuthError::AuthErrorNone();
     EXPECT_CALL(service, GetAuthError()).WillRepeatedly(ReturnRef(error));
-
-    std::unique_ptr<FakeProfileOAuth2TokenService> token_service =
-        std::make_unique<FakeProfileOAuth2TokenService>(profile->GetPrefs());
-    std::unique_ptr<FakeGaiaCookieManagerService> cookie_service =
-        std::make_unique<FakeGaiaCookieManagerService>(
-            token_service.get(),
-            ChromeSigninClientFactory::GetForProfile(profile.get()), true);
-
-    FakeSigninManagerForSyncUIUtilTest signin(
-        profile.get(), token_service.get(), cookie_service.get());
-    AccountTrackerService* account_service =
-        AccountTrackerServiceFactory::GetForProfile(profile.get());
-
-    identity::IdentityTestEnvironment environment(
-        account_service, token_service.get(),
-        static_cast<identity::SigninManagerForTest*>(&signin),
-        cookie_service.get());
-
-    AccountInfo account_info =
-        environment.MakePrimaryAccountAvailable(kTestUser);
-
-    GetDistinctCase(&service, &signin, environment.identity_manager(),
-                    account_info, idx);
+    FakeSigninManagerForSyncUIUtilTest signin(profile.get());
+    signin.SetAuthenticatedAccountInfo(kTestGaiaId, kTestUser);
+    ProfileOAuth2TokenService* token_service =
+        ProfileOAuth2TokenServiceFactory::GetForProfile(profile.get());
+    GetDistinctCase(&service, &signin, token_service, idx);
     base::string16 status_label;
     base::string16 link_label;
     sync_ui_util::ActionType action_type = sync_ui_util::NO_ACTION;
-    sync_ui_util::GetStatusLabels(profile.get(), &service,
-                                  *environment.identity_manager(),
-                                  &status_label, &link_label, &action_type);
+    sync_ui_util::GetStatusLabels(
+        profile.get(), &service,
+        *IdentityManagerFactory::GetForProfile(profile.get()), &status_label,
+        &link_label, &action_type);
 
     EXPECT_EQ(GetActionTypeforDistinctCase(idx), action_type);
     // If the status and link message combination is already present in the set
