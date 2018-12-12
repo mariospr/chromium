@@ -9,6 +9,7 @@
 
 #include "base/macros.h"
 
+class AccountTrackerService;
 class ProfileOAuth2TokenService;
 
 namespace identity {
@@ -17,7 +18,14 @@ namespace identity {
 // user's Gaia accounts.
 class AccountsMutator {
  public:
-  explicit AccountsMutator(ProfileOAuth2TokenService* token_service);
+  struct SetRefreshTokenExtraInfo {
+    std::string full_name;
+    std::string hosted_domain;
+    bool is_child_account;
+  };
+
+  explicit AccountsMutator(ProfileOAuth2TokenService* token_service,
+                           AccountTrackerService* account_tracker_service);
   ~AccountsMutator();
 
   // Loads credentials from a backing persistent store to make them available
@@ -33,8 +41,27 @@ class AccountsMutator {
   // TODO(https://crbug.com/740117): Eliminate the need to expose this.
   void LoadAccountsFromDisk(const std::string& primary_account_id);
 
+  // Updates the refresh token of the account with the given information, first
+  // adding that account to the system if it is not known.
+  std::string AddOrUpdateAccount(const std::string& gaia_id,
+                                 const std::string& email,
+                                 const std::string& refresh_token,
+                                 const SetRefreshTokenExtraInfo& extra_info);
+
+  // Updates the refresh token of |account_id|, which must be a known account.
+  void UpdateRefreshToken(const std::string& account_id,
+                          const std::string& refresh_token);
+
+  // Removes the account given by |account_id|. Also revokes the token
+  // server-side if needed.
+  void RemoveAccount(const std::string& account_id);
+
+  // Removes all accounts.
+  void RemoveAllAccounts();
+
  private:
   ProfileOAuth2TokenService* token_service_;
+  AccountTrackerService* account_tracker_service_;
 
   DISALLOW_COPY_AND_ASSIGN(AccountsMutator);
 };
