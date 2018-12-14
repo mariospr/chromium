@@ -55,7 +55,7 @@ IdentityManager::IdentityManager(
       account_tracker_service_(account_tracker_service),
       gaia_cookie_manager_service_(gaia_cookie_manager_service),
       primary_account_mutator_(std::move(primary_account_mutator)),
-      accounts_mutator_(token_service_, account_tracker_service_) {
+      accounts_mutator_(token_service_) {
   signin_manager_->AddObserver(this);
   token_service_->AddDiagnosticsObserver(this);
   token_service_->AddObserver(this);
