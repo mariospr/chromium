@@ -30,14 +30,14 @@ std::string AccountsMutator::AddOrUpdateAccount(
   std::string account_id =
       account_tracker_service_->SeedAccountInfo(gaia_id, email);
 
+  // UpdateRefreshToken needs to be called before setting the extra information
+  // to prevent AccountTrackerService::OnAccountUpdated() being invoked before
+  // IdentityManager::OnRefreshTokenUpdatedForAccount() gets called.
+  UpdateRefreshToken(account_id, refresh_token);
+
   // Add extra info about the account before refreshing the token.
   account_tracker_service_->SetIsChildAccount(account_id,
                                               extra_info.is_child_account);
-
-  // TODO: Handle the remaining extra fields provided along with |extra_info|
-  // i.e. |full_name| and |hosted_domain|.
-
-  UpdateRefreshToken(account_id, refresh_token);
   return account_id;
 }
 

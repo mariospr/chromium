@@ -14,15 +14,17 @@ class ProfileOAuth2TokenService;
 
 namespace identity {
 
+// Structure grouping the different fields from AccountInfo supported when
+// adding or updating accounts. Please add more fields only when implementing
+// support for them in AddOrUpdateAccount().
+struct SetRefreshTokenExtraInfo {
+  bool is_child_account;
+};
+
 // Supports seeding of account info and mutation of refresh tokens for the
 // user's Gaia accounts.
 class AccountsMutator {
  public:
-  struct SetRefreshTokenExtraInfo {
-    std::string full_name;
-    std::string hosted_domain;
-    bool is_child_account;
-  };
 
   explicit AccountsMutator(ProfileOAuth2TokenService* token_service,
                            AccountTrackerService* account_tracker_service);

@@ -159,9 +159,7 @@ TEST_F(AccountsMutatorTest, AddOrUpdateAccount_AddNewAccount) {
           },
           base::Unretained(&run_loop), expected_id));
 
-  AccountsMutator::SetRefreshTokenExtraInfo extra_info;
-  extra_info.full_name = std::string();
-  extra_info.hosted_domain = std::string();
+  SetRefreshTokenExtraInfo extra_info;
   extra_info.is_child_account = false;
 
   std::string account_id = accounts_mutator()->AddOrUpdateAccount(
@@ -190,9 +188,7 @@ TEST_F(AccountsMutatorTest, AddOrUpdateAccount_UpdateExistingAccount) {
                              const std::string& account_id) { loop->Quit(); },
                           base::Unretained(&run_loop)));
 
-  AccountsMutator::SetRefreshTokenExtraInfo extra_info;
-  extra_info.full_name = std::string();
-  extra_info.hosted_domain = std::string();
+  SetRefreshTokenExtraInfo extra_info;
   extra_info.is_child_account = false;
 
   std::string account_id = accounts_mutator()->AddOrUpdateAccount(
@@ -239,9 +235,7 @@ TEST_F(AccountsMutatorTest, UpdateRefreshToken_ExistingAccount) {
                              const std::string& account_id) { loop->Quit(); },
                           base::Unretained(&run_loop)));
 
-  AccountsMutator::SetRefreshTokenExtraInfo extra_info;
-  extra_info.full_name = std::string();
-  extra_info.hosted_domain = std::string();
+  SetRefreshTokenExtraInfo extra_info;
   extra_info.is_child_account = false;
 
   std::string account_id = accounts_mutator()->AddOrUpdateAccount(
@@ -326,9 +320,7 @@ TEST_F(AccountsMutatorTest, RemoveAccount_ExistingAccount) {
                              const std::string& account_id) { loop->Quit(); },
                           base::Unretained(&run_loop)));
 
-  AccountsMutator::SetRefreshTokenExtraInfo extra_info;
-  extra_info.full_name = std::string();
-  extra_info.hosted_domain = std::string();
+  SetRefreshTokenExtraInfo extra_info;
   extra_info.is_child_account = false;
 
   std::string account_id = accounts_mutator()->AddOrUpdateAccount(
@@ -371,9 +363,7 @@ TEST_F(AccountsMutatorTest, RemoveAllAccounts) {
                              const std::string& account_id) { loop->Quit(); },
                           base::Unretained(&run_loop)));
 
-  AccountsMutator::SetRefreshTokenExtraInfo extra_info;
-  extra_info.full_name = std::string();
-  extra_info.hosted_domain = std::string();
+  SetRefreshTokenExtraInfo extra_info;
   extra_info.is_child_account = false;
 
   std::string account_id = accounts_mutator()->AddOrUpdateAccount(
