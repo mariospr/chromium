@@ -729,7 +729,7 @@ void MutableProfileOAuth2TokenServiceDelegate::LoadAllCredentialsIntoMemory(
 void MutableProfileOAuth2TokenServiceDelegate::UpdateCredentials(
     const std::string& account_id,
     const std::string& refresh_token) {
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
   DCHECK(!account_id.empty());
   DCHECK(!refresh_token.empty());
 
@@ -749,7 +749,7 @@ void MutableProfileOAuth2TokenServiceDelegate::UpdateCredentials(
 void MutableProfileOAuth2TokenServiceDelegate::UpdateCredentialsInMemory(
     const std::string& account_id,
     const std::string& refresh_token) {
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
   DCHECK(!account_id.empty());
   DCHECK(!refresh_token.empty());
 
@@ -807,7 +807,7 @@ void MutableProfileOAuth2TokenServiceDelegate::PersistCredentials(
 void MutableProfileOAuth2TokenServiceDelegate::RevokeAllCredentials() {
   if (!can_revoke_credentials_)
     return;
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
 
   VLOG(1) << "MutablePO2TS::RevokeAllCredentials";
 
@@ -925,7 +925,7 @@ void MutableProfileOAuth2TokenServiceDelegate::RevokeCredentialsImpl(
     const std::string& account_id,
     bool revoke_on_server) {
   ValidateAccountId(account_id);
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
 
   if (refresh_tokens_.count(account_id) > 0) {
     VLOG(1) << "MutablePO2TS::RevokeCredentials for account_id=" << account_id;
