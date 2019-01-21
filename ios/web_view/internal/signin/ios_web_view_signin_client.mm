@@ -7,7 +7,9 @@
 #include "components/signin/core/browser/cookie_settings_util.h"
 #include "components/signin/core/browser/device_id_helper.h"
 #include "google_apis/gaia/gaia_auth_fetcher.h"
+#include "ios/web_view/internal/app/application_context.h"
 #import "ios/web_view/internal/sync/cwv_sync_controller_internal.h"
+#include "services/network/public/cpp/network_connection_tracker.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 
 #if !defined(__has_feature) || !__has_feature(objc_arc)
@@ -84,6 +86,12 @@ void IOSWebViewSigninClient::PreSignOut(
     signin_metrics::ProfileSignout signout_source_metric) {
   std::move(on_signout_decision_reached).Run(SignoutDecision::ALLOW_SIGNOUT);
   [sync_controller_ didSignoutWithSourceMetric:signout_source_metric];
+}
+
+network::NetworkConnectionTracker*
+IOSWebViewSigninClient::GetNetworkConnectionTracker() {
+  return ios_web_view::ApplicationContext::GetInstance()
+      ->GetNetworkConnectionTracker();
 }
 
 void IOSWebViewSigninClient::DelayNetworkCall(const base::Closure& callback) {

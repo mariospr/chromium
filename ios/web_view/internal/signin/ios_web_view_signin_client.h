@@ -15,6 +15,10 @@
 #include "net/cookies/cookie_change_dispatcher.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 
+namespace network {
+class NetworkConnectionTracker;
+}
+
 @class CWVSyncController;
 
 // iOS WebView specific signin client.
@@ -48,6 +52,7 @@ class IOSWebViewSigninClient : public SigninClient {
   void PreSignOut(
       base::OnceCallback<void(SignoutDecision)> on_signout_decision_reached,
       signin_metrics::ProfileSignout signout_source_metric) override;
+  network::NetworkConnectionTracker* GetNetworkConnectionTracker() override;
   void DelayNetworkCall(const base::Closure& callback) override;
   std::unique_ptr<GaiaAuthFetcher> CreateGaiaAuthFetcher(
       GaiaAuthConsumer* consumer,
