@@ -17,6 +17,7 @@
 #include "ios/chrome/browser/signin/gaia_auth_fetcher_ios.h"
 #include "ios/chrome/browser/web_data_service_factory.h"
 #include "ios/chrome/common/channel_info.h"
+#include "services/network/public/cpp/network_connection_tracker.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 
 #if !defined(__has_feature) || !__has_feature(objc_arc)
@@ -84,6 +85,11 @@ void IOSChromeSigninClient::AddContentSettingsObserver(
 void IOSChromeSigninClient::RemoveContentSettingsObserver(
     content_settings::Observer* observer) {
   host_content_settings_map_->RemoveObserver(observer);
+}
+
+network::NetworkConnectionTracker*
+IOSChromeSigninClient::GetNetworkConnectionTracker() {
+  return GetApplicationContext()->GetNetworkConnectionTracker();
 }
 
 void IOSChromeSigninClient::DelayNetworkCall(const base::Closure& callback) {
