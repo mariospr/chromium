@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "base/threading/thread_task_runner_handle.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
+#include "services/network/test/test_network_connection_tracker.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 namespace {
@@ -122,6 +123,11 @@ void TestSigninClient::AddContentSettingsObserver(
 
 void TestSigninClient::RemoveContentSettingsObserver(
     content_settings::Observer* observer) {
+}
+
+network::NetworkConnectionTracker*
+TestSigninClient::GetNetworkConnectionTracker() {
+  return network::TestNetworkConnectionTracker::GetInstance();
 }
 
 void TestSigninClient::DelayNetworkCall(const base::Closure& callback) {

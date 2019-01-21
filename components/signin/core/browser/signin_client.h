@@ -25,6 +25,7 @@ class Observer;
 }
 
 namespace network {
+class NetworkConnectionTracker;
 class SharedURLLoaderFactory;
 
 namespace mojom {
@@ -90,6 +91,11 @@ class SigninClient : public KeyedService {
       content_settings::Observer* observer) = 0;
   virtual void RemoveContentSettingsObserver(
       content_settings::Observer* observer) = 0;
+
+  // Returns a NetworkConnectionTracker that can be used to subscribe for
+  // network change events.
+  // Must only be called on the UI thread.
+  virtual network::NetworkConnectionTracker* GetNetworkConnectionTracker() = 0;
 
   // Execute |callback| if and when there is a network connection.
   virtual void DelayNetworkCall(const base::Closure& callback) = 0;

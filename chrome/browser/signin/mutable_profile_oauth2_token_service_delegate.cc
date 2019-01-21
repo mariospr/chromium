@@ -21,7 +21,6 @@
 #include "components/signin/core/browser/signin_pref_names.h"
 #include "components/signin/core/browser/webdata/token_web_data.h"
 #include "components/webdata/common/web_data_service_base.h"
-#include "content/public/browser/network_service_instance.h"
 #include "google_apis/gaia/gaia_auth_fetcher.h"
 #include "google_apis/gaia/gaia_auth_util.h"
 #include "google_apis/gaia/gaia_constants.h"
@@ -354,14 +353,14 @@ MutableProfileOAuth2TokenServiceDelegate::
   backoff_policy_.maximum_backoff_ms = 15 * 60 * 1000;
   backoff_policy_.entry_lifetime_ms = -1;
   backoff_policy_.always_use_initial_delay = false;
-  content::GetNetworkConnectionTracker()->AddNetworkConnectionObserver(this);
+  client_->GetNetworkConnectionTracker()->AddNetworkConnectionObserver(this);
 }
 
 MutableProfileOAuth2TokenServiceDelegate::
     ~MutableProfileOAuth2TokenServiceDelegate() {
   VLOG(1) << "MutablePO2TS::~MutablePO2TS";
   DCHECK(server_revokes_.empty());
-  content::GetNetworkConnectionTracker()->RemoveNetworkConnectionObserver(this);
+  client_->GetNetworkConnectionTracker()->RemoveNetworkConnectionObserver(this);
 }
 
 // static

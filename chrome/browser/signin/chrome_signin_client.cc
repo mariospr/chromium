@@ -100,13 +100,13 @@ ChromeSigninClient::ChromeSigninClient(Profile* profile)
       profile_(profile),
       weak_ptr_factory_(this) {
 #if !defined(OS_CHROMEOS)
-  content::GetNetworkConnectionTracker()->AddNetworkConnectionObserver(this);
+  GetNetworkConnectionTracker()->AddNetworkConnectionObserver(this);
 #endif
 }
 
 ChromeSigninClient::~ChromeSigninClient() {
 #if !defined(OS_CHROMEOS)
-  content::GetNetworkConnectionTracker()->RemoveNetworkConnectionObserver(this);
+  GetNetworkConnectionTracker()->RemoveNetworkConnectionObserver(this);
 #endif
 }
 
@@ -291,6 +291,11 @@ void ChromeSigninClient::OnConnectionChanged(
 }
 #endif
 
+network::NetworkConnectionTracker*
+ChromeSigninClient::GetNetworkConnectionTracker() {
+  return content::GetNetworkConnectionTracker();
+}
+
 void ChromeSigninClient::DelayNetworkCall(const base::Closure& callback) {
 #if defined(OS_CHROMEOS)
   chromeos::DelayNetworkCall(
@@ -300,7 +305,7 @@ void ChromeSigninClient::DelayNetworkCall(const base::Closure& callback) {
 #else
   // Don't bother if we don't have any kind of network connection.
   network::mojom::ConnectionType type;
-  bool sync = content::GetNetworkConnectionTracker()->GetConnectionType(
+  bool sync = GetNetworkConnectionTracker()->GetConnectionType(
       &type, base::BindOnce(&ChromeSigninClient::OnConnectionChanged,
                             weak_ptr_factory_.GetWeakPtr()));
   if (!sync || type == network::mojom::ConnectionType::CONNECTION_NONE) {
