@@ -4,6 +4,7 @@ include_rules = [
   "+components/image_fetcher/core",
   "+components/invalidation/public",
   "+components/metrics",
+  "+components/pref_registry",
   "+google/cacheinvalidation",
   "+jni",
   "+mojo/public",

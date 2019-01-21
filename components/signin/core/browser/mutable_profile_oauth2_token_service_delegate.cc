@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/signin/mutable_profile_oauth2_token_service_delegate.h"
+#include "components/signin/core/browser/mutable_profile_oauth2_token_service_delegate.h"
 
 #include <stddef.h>
 
@@ -260,9 +260,9 @@ MutableProfileOAuth2TokenServiceDelegate::RevokeServerRefreshToken::
   RecordRefreshTokenRevocationRequestEvent(
       TokenRevocationRequestProgress::kRequestCreated);
   client->DelayNetworkCall(
-      base::Bind(&MutableProfileOAuth2TokenServiceDelegate::
-                     RevokeServerRefreshToken::Start,
-                 weak_ptr_factory_.GetWeakPtr()));
+      base::BindRepeating(&MutableProfileOAuth2TokenServiceDelegate::
+                              RevokeServerRefreshToken::Start,
+                          weak_ptr_factory_.GetWeakPtr()));
 }
 
 void MutableProfileOAuth2TokenServiceDelegate::RevokeServerRefreshToken::
@@ -273,8 +273,7 @@ void MutableProfileOAuth2TokenServiceDelegate::RevokeServerRefreshToken::
 }
 
 MutableProfileOAuth2TokenServiceDelegate::RevokeServerRefreshToken::
-    ~RevokeServerRefreshToken() {
-}
+    ~RevokeServerRefreshToken() {}
 
 bool MutableProfileOAuth2TokenServiceDelegate::RevokeServerRefreshToken::
     ShouldRetry(GaiaAuthConsumer::TokenRevocationStatus status) {
@@ -899,7 +898,7 @@ void MutableProfileOAuth2TokenServiceDelegate::OnConnectionChanged(
 }
 
 const net::BackoffEntry*
-    MutableProfileOAuth2TokenServiceDelegate::BackoffEntry() const {
+MutableProfileOAuth2TokenServiceDelegate::BackoffEntry() const {
   return &backoff_entry_;
 }
 
