@@ -16,6 +16,7 @@ template <typename T>
 struct DefaultSingletonTraits;
 }  // namespace base
 
+class PrefRegistrySimple;
 class SigninManager;
 
 namespace ios_web_view {
@@ -38,6 +39,9 @@ class WebViewSigninManagerFactory : public BrowserStateKeyedServiceFactory {
   // can call it).
   void RegisterBrowserStatePrefs(
       user_prefs::PrefRegistrySyncable* registry) override;
+
+  // Registers the browser-global prefs used by SigninManager.
+  static void RegisterPrefs(PrefRegistrySimple* registry);
 
  private:
   friend struct base::DefaultSingletonTraits<WebViewSigninManagerFactory>;

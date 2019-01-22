@@ -14,12 +14,12 @@
 #include "components/prefs/pref_service.h"
 #include "components/prefs/pref_service_factory.h"
 #include "components/proxy_config/pref_proxy_config_tracker_impl.h"
-#include "components/signin/core/browser/signin_manager_base.h"
 #include "components/translate/core/browser/translate_download_manager.h"
 #include "ios/web/public/web_thread.h"
 #include "ios/web_view/cwv_web_view_buildflags.h"
 #include "ios/web_view/internal/app/web_view_io_thread.h"
 #import "ios/web_view/internal/cwv_flags_internal.h"
+#include "ios/web_view/internal/signin/web_view_signin_manager_factory.h"
 #include "net/socket/client_socket_pool_manager.h"
 #include "services/network/network_change_manager.h"
 #include "services/network/public/cpp/network_connection_tracker.h"
@@ -96,7 +96,7 @@ PrefService* ApplicationContext::GetLocalState() {
     flags_ui::PrefServiceFlagsStorage::RegisterPrefs(pref_registry.get());
     PrefProxyConfigTrackerImpl::RegisterPrefs(pref_registry.get());
 #if BUILDFLAG(IOS_WEB_VIEW_ENABLE_SYNC)
-    SigninManagerBase::RegisterPrefs(pref_registry.get());
+    WebViewSigninManagerFactory::RegisterPrefs(pref_registry.get());
 #endif  // BUILDFLAG(IOS_WEB_VIEW_ENABLE_SYNC)
 
     base::FilePath local_state_path;

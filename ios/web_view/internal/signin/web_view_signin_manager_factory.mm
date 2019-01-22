@@ -58,6 +58,11 @@ WebViewSigninManagerFactory* WebViewSigninManagerFactory::GetInstance() {
   return base::Singleton<WebViewSigninManagerFactory>::get();
 }
 
+// static
+void WebViewSigninManagerFactory::RegisterPrefs(PrefRegistrySimple* registry) {
+  SigninManagerBase::RegisterPrefs(registry);
+}
+
 void WebViewSigninManagerFactory::RegisterBrowserStatePrefs(
     user_prefs::PrefRegistrySyncable* registry) {
   SigninManagerBase::RegisterProfilePrefs(registry);
