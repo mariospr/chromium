@@ -17,17 +17,16 @@ void WaitForNetworkCallbackHelper::OnNetworkChanged(
   if (net::NetworkChangeNotifier::IsOffline())
     return;
 
-  for (const base::Closure& callback : delayed_callbacks_)
-    callback.Run();
+  for (base::OnceClosure& callback : delayed_callbacks_)
+    std::move(callback).Run();
 
   delayed_callbacks_.clear();
 }
 
-void WaitForNetworkCallbackHelper::HandleCallback(
-    const base::Closure& callback) {
+void WaitForNetworkCallbackHelper::HandleCallback(base::OnceClosure callback) {
   if (net::NetworkChangeNotifier::IsOffline()) {
-    delayed_callbacks_.push_back(callback);
+    delayed_callbacks_.push_back(std::move(callback));
   } else {
-    callback.Run();
+    std::move(callback).Run();
   }
 }

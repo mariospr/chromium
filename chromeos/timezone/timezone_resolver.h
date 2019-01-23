@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "base/callback.h"
+#include "base/callback_forward.h"
 #include "base/component_export.h"
 #include "base/macros.h"
 #include "base/threading/thread_checker.h"
@@ -35,7 +36,7 @@ class COMPONENT_EXPORT(CHROMEOS_TIMEZONE) TimeZoneResolver {
 
   // chromeos::DelayNetworkCall cannot be used directly due to link
   // restrictions.
-  using DelayNetworkCallClosure = base::Callback<void(const base::Closure&)>;
+  using DelayNetworkCallClosure = base::Callback<void(base::OnceClosure)>;
 
   class Delegate {
    public:

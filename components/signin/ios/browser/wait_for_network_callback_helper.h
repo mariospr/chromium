@@ -8,6 +8,7 @@
 #include <list>
 
 #include "base/callback.h"
+#include "base/callback_forward.h"
 #include "base/macros.h"
 #include "net/base/network_change_notifier.h"
 
@@ -25,10 +26,10 @@ class WaitForNetworkCallbackHelper
 
   // If offline, saves the |callback| to be called later when online. Otherwise,
   // invokes immediately.
-  void HandleCallback(const base::Closure& callback);
+  void HandleCallback(base::OnceClosure callback);
 
  private:
-  std::list<base::Closure> delayed_callbacks_;
+  std::list<base::OnceClosure> delayed_callbacks_;
 
   DISALLOW_COPY_AND_ASSIGN(WaitForNetworkCallbackHelper);
 };

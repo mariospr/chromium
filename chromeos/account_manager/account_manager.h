@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "base/callback.h"
+#include "base/callback_forward.h"
 #include "base/files/file_path.h"
 #include "base/gtest_prod_util.h"
 #include "base/macros.h"
@@ -80,7 +81,7 @@ class CHROMEOS_EXPORT AccountManager {
   using AccountListCallback = base::OnceCallback<void(std::vector<AccountKey>)>;
 
   using DelayNetworkCallRunner =
-      base::RepeatingCallback<void(const base::RepeatingClosure&)>;
+      base::RepeatingCallback<void(base::OnceClosure)>;
 
   class Observer {
    public:

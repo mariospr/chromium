@@ -295,7 +295,7 @@ void ChromeSigninClient::DelayNetworkCall(base::OnceClosure callback) {
 #if defined(OS_CHROMEOS)
   chromeos::DelayNetworkCall(
       base::TimeDelta::FromMilliseconds(chromeos::kDefaultNetworkRetryDelayMS),
-      callback);
+      std::move(callback));
   return;
 #else
   // Don't bother if we don't have any kind of network connection.

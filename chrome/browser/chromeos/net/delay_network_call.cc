@@ -6,6 +6,7 @@
 
 #include "base/bind.h"
 #include "base/callback.h"
+#include "base/callback_forward.h"
 #include "base/task/post_task.h"
 #include "chromeos/network/network_handler.h"
 #include "chromeos/network/network_state.h"
@@ -18,7 +19,7 @@
 const unsigned chromeos::kDefaultNetworkRetryDelayMS = 3000;
 
 void chromeos::DelayNetworkCall(base::TimeDelta retry,
-                                const base::Closure& callback) {
+                                base::OnceClosure callback) {
   bool delay_network_call = false;
   const NetworkState* default_network =
       NetworkHandler::Get()->network_state_handler()->DefaultNetwork();
@@ -49,8 +50,9 @@ void chromeos::DelayNetworkCall(base::TimeDelta retry,
   if (delay_network_call) {
     base::PostDelayedTaskWithTraits(
         FROM_HERE, {content::BrowserThread::UI},
-        base::Bind(&chromeos::DelayNetworkCall, retry, callback), retry);
+        base::BindOnce(&chromeos::DelayNetworkCall, retry, std::move(callback)),
+        retry);
   } else {
-    callback.Run();
+    std::move(callback).Run();
   }
 }
