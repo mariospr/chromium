@@ -55,7 +55,7 @@ class ChromeSigninClient
       content_settings::Observer* observer) override;
   void RemoveContentSettingsObserver(
       content_settings::Observer* observer) override;
-  void DelayNetworkCall(const base::Closure& callback) override;
+  void DelayNetworkCall(base::OnceClosure callback) override;
   std::unique_ptr<GaiaAuthFetcher> CreateGaiaAuthFetcher(
       GaiaAuthConsumer* consumer,
       gaia::GaiaSource source,
@@ -115,7 +115,7 @@ class ChromeSigninClient
   base::OnceCallback<void(SignoutDecision)> on_signout_decision_reached_;
 
 #if !defined(OS_CHROMEOS)
-  std::list<base::Closure> delayed_callbacks_;
+  std::list<base::OnceClosure> delayed_callbacks_;
 #endif
 
   bool should_display_user_manager_ = true;
