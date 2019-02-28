@@ -86,6 +86,9 @@ _CONFIG = [
             'base::RepeatingCallback',
             'base::RepeatingClosure',
 
+            # //base/mac/scoped_nsobject.h
+            'base::scoped_nsobject',
+
             # //base/memory/ptr_util.h.
             'base::WrapUnique',
 
