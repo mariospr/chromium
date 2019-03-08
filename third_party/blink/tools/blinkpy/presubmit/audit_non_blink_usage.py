@@ -89,6 +89,9 @@ _CONFIG = [
             # //base/mac/scoped_nsobject.h
             'base::scoped_nsobject',
 
+            # //base/memory/scoped_policy.h
+            'base::scoped_policy::RETAIN',
+
             # //base/memory/ptr_util.h.
             'base::WrapUnique',
 
