@@ -26,6 +26,7 @@
 #import <AppKit/NSFont.h>
 #import <AvailabilityMacros.h>
 
+#include "base/mac/foundation_util.h"
 #include "base/mac/scoped_cftyperef.h"
 #include "base/mac/scoped_nsobject.h"
 #include "base/stl_util.h"
