@@ -83,7 +83,7 @@ NSColor* NsColor(const Color& color) {
 
       static int cursor;
       cached_rgba_values[cursor] = c;
-      cached_colors[cursor].reset(result);
+      cached_colors[cursor].reset([result retain]);
       if (++cursor == kCacheSize)
         cursor = 0;
       return result;
