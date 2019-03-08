@@ -132,15 +132,13 @@ static BOOL BetterChoice(NSFontTraitMask desired_traits,
 NSFont* MatchUniqueFont(const AtomicString& unique_font_name, float size) {
   // Testing with a large list of fonts available on Mac OS shows that matching
   // for kCTFontNameAttribute matches postscript name as well as full font name.
-  base::ScopedCFTypeRef<CFMutableDictionaryRef> attributes(
-      CFDictionaryCreateMutable(kCFAllocatorDefault, 0, NULL, NULL));
-  base::scoped_nsobject<NSString> desired_name(unique_font_name);
-  CFDictionarySetValue(attributes, kCTFontNameAttribute, desired_name);
-  base::ScopedCFTypeRef<CFNumberRef> font_size(
-      CFNumberCreate(kCFAllocatorDefault, kCFNumberFloat32Type, &size));
-  CFDictionarySetValue(attributes, kCTFontSizeAttribute, font_size);
+  NSString* desired_name = unique_font_name;
+  NSDictionary* attributes = @{
+    (NSString*)kCTFontNameAttribute : desired_name,
+    (NSString*)kCTFontSizeAttribute : @(size)
+  };
   base::ScopedCFTypeRef<CTFontDescriptorRef> descriptor(
-      CTFontDescriptorCreateWithAttributes(attributes));
+      CTFontDescriptorCreateWithAttributes(base::mac::NSToCFCast(attributes)));
 
   base::ScopedCFTypeRef<CTFontRef> matched_font(
       CTFontCreateWithFontDescriptor(descriptor, 0, nullptr));
@@ -154,20 +152,16 @@ NSFont* MatchUniqueFont(const AtomicString& unique_font_name, float size) {
       CTFontCopyName(matched_font, kCTFontFullNameKey));
   // If the found font does not match in postscript name or full font name, it's
   // not the exact match that is required, so return nullptr.
-  if ((kCFCompareEqualTo !=
-       CFStringCompare(
-           matched_font_ps_name,
-           (__bridge CFStringRef)base::mac::NSToCFCast(desired_name),
-           kCFCompareCaseInsensitive)) &&
-      (kCFCompareEqualTo !=
-       CFStringCompare(
-           matched_font_full_font_name,
-           (__bridge CFStringRef)base::mac::NSToCFCast(desired_name),
-           kCFCompareCaseInsensitive))) {
+  if (kCFCompareEqualTo != CFStringCompare(matched_font_ps_name,
+                                           base::mac::NSToCFCast(desired_name),
+                                           kCFCompareCaseInsensitive) &&
+      kCFCompareEqualTo != CFStringCompare(matched_font_full_font_name,
+                                           base::mac::NSToCFCast(desired_name),
+                                           kCFCompareCaseInsensitive)) {
     return nullptr;
   }
 
-  return (__bridge NSFont*)base::mac::CFToNSCast(matched_font.release());
+  return [base::mac::CFToNSCast(matched_font.release()) autorelease];
 }
 
 // Family name is somewhat of a misnomer here.  We first attempt to find an

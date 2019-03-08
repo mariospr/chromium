@@ -44,10 +44,10 @@ namespace blink {
 
 static bool CanLoadInProcess(NSFont* ns_font) {
   base::ScopedCFTypeRef<CGFontRef> cg_font(
-      CTFontCopyGraphicsFont(toCTFontRef(ns_font), 0));
+      CTFontCopyGraphicsFont(base::mac::NSToCFCast(ns_font), 0));
   // Toll-free bridged types CFStringRef and NSString*.
-  base::scoped_nsobject<NSString> font_name(const_cast<NSString*>(
-      reinterpret_cast<const NSString*>(CGFontCopyPostScriptName(cg_font))));
+  base::scoped_nsobject<NSString> font_name(
+      base::mac::CFToNSCast(CGFontCopyPostScriptName(cg_font)));
   return ![font_name isEqualToString:@"LastResort"];
 }
 
