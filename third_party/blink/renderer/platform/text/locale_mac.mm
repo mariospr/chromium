@@ -30,8 +30,11 @@
 
 #include "third_party/blink/renderer/platform/text/locale_mac.h"
 
+#import <Foundation/NSCalendar.h>
 #import <Foundation/NSDateFormatter.h>
 #import <Foundation/NSLocale.h>
+#import <Foundation/NSNumberFormatter.h>
+#import <Foundation/NSTimeZone.h>
 #include <memory>
 
 #include "base/memory/ptr_util.h"
