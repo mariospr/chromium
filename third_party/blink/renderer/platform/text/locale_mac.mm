@@ -55,9 +55,9 @@ static inline String LanguageFromLocale(const String& locale) {
   return normalized_locale.Left(separator_position);
 }
 
-static base::scoped_nsobject<NSLocale> DetermineLocale(const String& locale) {
+static NSLocale* DetermineLocale(const String& locale) {
   if (!WebTestSupport::IsRunningWebTest()) {
-    base::scoped_nsobject<NSLocale> current_locale([NSLocale currentLocale]);
+    NSLocale* current_locale = [NSLocale currentLocale];
     String current_locale_language =
         LanguageFromLocale(String([current_locale localeIdentifier]));
     String locale_language = LanguageFromLocale(locale);
@@ -65,8 +65,7 @@ static base::scoped_nsobject<NSLocale> DetermineLocale(const String& locale) {
       return current_locale;
   }
   // It seems initWithLocaleIdentifier accepts dash-separated locale identifier.
-  return base::scoped_nsobject<NSLocale>(
-      [[NSLocale alloc] initWithLocaleIdentifier:locale]);
+  return [[NSLocale alloc] initWithLocaleIdentifier:locale];
 }
 
 std::unique_ptr<Locale> Locale::Create(const String& locale) {
@@ -106,9 +105,9 @@ LocaleMac::LocaleMac(NSLocale* locale)
 LocaleMac::~LocaleMac() {}
 
 std::unique_ptr<LocaleMac> LocaleMac::Create(const String& locale_identifier) {
-  base::scoped_nsobject<NSLocale> locale(
-      [[NSLocale alloc] initWithLocaleIdentifier:locale_identifier]);
-  return base::WrapUnique(new LocaleMac(locale));
+  NSLocale* locale =
+      [[NSLocale alloc] initWithLocaleIdentifier:locale_identifier];
+  return LocaleMac::Create(locale);
 }
 
 std::unique_ptr<LocaleMac> LocaleMac::Create(NSLocale* locale) {
@@ -296,7 +295,7 @@ const Vector<String>& LocaleMac::TimeAMPMLabels() {
   if (!time_ampm_labels_.IsEmpty())
     return time_ampm_labels_;
   time_ampm_labels_.ReserveCapacity(2);
-  base::scoped_nsobject<NSDateFormatter> formatter = ShortTimeFormatter();
+  base::scoped_nsobject<NSDateFormatter> formatter(ShortTimeFormatter());
   time_ampm_labels_.push_back([formatter AMSymbol]);
   time_ampm_labels_.push_back([formatter PMSymbol]);
   return time_ampm_labels_;
