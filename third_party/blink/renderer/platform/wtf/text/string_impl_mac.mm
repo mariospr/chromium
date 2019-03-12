@@ -22,7 +22,6 @@
 
 #import <CoreFoundation/CFBase.h>
 #import <Foundation/NSObject.h>
-#include "third_party/blink/renderer/platform/wtf/retain_ptr.h"
 
 namespace WTF {
 
@@ -39,7 +38,7 @@ static inline id HardAutorelease(CFTypeRef object) {
 }
 
 StringImpl::operator NSString*() {
-  return HardAutorelease(CreateCFString().LeakRef());
+  return HardAutorelease(CreateCFString().release());
 }
 
 }  // namespace WTF
