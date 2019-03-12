@@ -27,6 +27,7 @@
 
 #include <Carbon/Carbon.h>
 #include "base/mac/scoped_nsobject.h"
+#include "base/memory/scoped_policy.h"
 #include "skia/ext/skia_utils_mac.h"
 #include "third_party/blink/public/platform/mac/web_scrollbar_theme.h"
 #include "third_party/blink/public/platform/platform.h"
@@ -68,7 +69,7 @@
   if (!(self = [super init]))
     return nil;
   _scrollbar = scrollbar;
-  _scrollbarPainter.reset(painter);
+  _scrollbarPainter.reset(painter, base::scoped_policy::RETAIN);
   [_scrollbarPainter addObserver:self
                       forKeyPath:@"knobAlpha"
                          options:0
@@ -294,7 +295,8 @@ void ScrollbarThemeMac::PaintThumbInternal(GraphicsContext& context,
   {
     LocalCurrentGraphicsContext local_context(context, local_rect);
     base::scoped_nsobject<BlinkScrollbarObserver> observer(
-        GetScrollbarPainterMap().at(const_cast<Scrollbar*>(&scrollbar)));
+        GetScrollbarPainterMap().at(const_cast<Scrollbar*>(&scrollbar)),
+        base::scoped_policy::RETAIN);
     ScrollbarPainter scrollbar_painter = [observer painter];
     [scrollbar_painter setEnabled:scrollbar.Enabled()];
     // drawKnob aligns the thumb to right side of the draw rect.
