@@ -6,7 +6,6 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 #include "base/mac/scoped_typeref.h"
-#include "base/memory/scoped_policy.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_view.h"
 
 namespace blink {
@@ -57,8 +56,7 @@ scoped_refptr<Hyphenation> Hyphenation::PlatformGetHyphenation(
   base::ScopedCFTypeRef<CFStringRef> locale_cf_string(
       locale.Impl()->CreateCFString());
   base::ScopedCFTypeRef<CFLocaleRef> locale_cf(
-      CFLocaleCreate(kCFAllocatorDefault, locale_cf_string),
-      base::scoped_policy::RETAIN);
+      CFLocaleCreate(kCFAllocatorDefault, locale_cf_string));
   if (!CFStringIsHyphenationAvailableForLocale(locale_cf))
     return nullptr;
   return base::AdoptRef(new HyphenationCF(locale_cf));
