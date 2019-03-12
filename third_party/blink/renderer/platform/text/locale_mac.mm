@@ -64,7 +64,7 @@ static NSLocale* DetermineLocale(const String& locale) {
     if (DeprecatedEqualIgnoringCase(current_locale_language, locale_language))
       return current_locale;
   }
-  // It seems initWithLocaleIdentifier accepts dash-separated locale identifier.
+  // It seems localeWithLocaleIdentifier accepts dash-separated locale identifier.
   return [NSLocale localeWithLocaleIdentifier:locale];
 }
 
