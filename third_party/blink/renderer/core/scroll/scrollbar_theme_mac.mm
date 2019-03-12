@@ -69,7 +69,7 @@
   if (!(self = [super init]))
     return nil;
   _scrollbar = scrollbar;
-  _scrollbarPainter.reset(painter, base::scoped_policy::RETAIN);
+  _scrollbarPainter = painter;
   [_scrollbarPainter addObserver:self
                       forKeyPath:@"knobAlpha"
                          options:0
