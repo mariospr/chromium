@@ -65,7 +65,7 @@ static NSLocale* DetermineLocale(const String& locale) {
       return current_locale;
   }
   // It seems initWithLocaleIdentifier accepts dash-separated locale identifier.
-  return [[NSLocale alloc] initWithLocaleIdentifier:locale];
+  return [NSLocale localeWithLocaleIdentifier:locale];
 }
 
 std::unique_ptr<Locale> Locale::Create(const String& locale) {
@@ -87,10 +87,9 @@ static base::scoped_nsobject<NSDateFormatter> CreateDateTimeFormatter(
 }
 
 LocaleMac::LocaleMac(NSLocale* locale)
-    : locale_(locale),
-      gregorian_calendar_(
-          [[NSCalendar alloc]
-              initWithCalendarIdentifier:NSCalendarIdentifierGregorian]),
+    : locale_([locale retain]),
+      gregorian_calendar_([[NSCalendar alloc]
+          initWithCalendarIdentifier:NSCalendarIdentifierGregorian]),
       did_initialize_number_data_(false) {
   NSArray* available_languages = [NSLocale ISOLanguageCodes];
   // NSLocale returns a lower case NSLocaleLanguageCode so we don't have care
@@ -105,8 +104,7 @@ LocaleMac::LocaleMac(NSLocale* locale)
 LocaleMac::~LocaleMac() {}
 
 std::unique_ptr<LocaleMac> LocaleMac::Create(const String& locale_identifier) {
-  NSLocale* locale =
-      [[NSLocale alloc] initWithLocaleIdentifier:locale_identifier];
+  NSLocale* locale = [NSLocale localeWithLocaleIdentifier:locale_identifier];
   return LocaleMac::Create(locale);
 }
 
