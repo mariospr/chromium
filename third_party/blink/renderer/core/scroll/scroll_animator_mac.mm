@@ -29,6 +29,7 @@
 
 #include <memory>
 #include "base/mac/scoped_cftyperef.h"
+#include "base/memory/scoped_policy.h"
 #include "third_party/blink/public/platform/platform.h"
 #include "third_party/blink/renderer/core/scroll/ns_scroller_imp_details.h"
 #include "third_party/blink/renderer/core/scroll/scrollable_area.h"
@@ -383,7 +384,8 @@ class BlinkScrollbarPartAnimationTimer {
 - (void)startAnimation {
   DCHECK(_scrollbar);
 
-  _scrollbarPainter.reset(ScrollbarPainterForScrollbar(*_scrollbar));
+  _scrollbarPainter.reset(ScrollbarPainterForScrollbar(*_scrollbar),
+                          base::scoped_policy::RETAIN);
   _timer->Start();
 }
 
@@ -706,7 +708,8 @@ ScrollAnimatorMac::ScrollAnimatorMac(blink::ScrollableArea* scrollable_area)
       [[BlinkScrollbarPainterControllerDelegate alloc]
           initWithScrollableArea:scrollable_area]);
   scrollbar_painter_controller_.reset(
-      [[NSClassFromString(@"NSScrollerImpPair") alloc] init]);
+      [[[NSClassFromString(@"NSScrollerImpPair") alloc] init] autorelease],
+      base::scoped_policy::RETAIN);
   [scrollbar_painter_controller_
       performSelector:@selector(setDelegate:)
            withObject:scrollbar_painter_controller_delegate_];
