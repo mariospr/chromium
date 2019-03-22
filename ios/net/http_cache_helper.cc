@@ -29,7 +29,7 @@ namespace {
 void PostCallback(const scoped_refptr<base::TaskRunner>& task_runner,
                   net::CompletionOnceCallback callback,
                   int error) {
-  task_runner->PostTask(FROM_HERE, base::BindOnce(callback, error));
+  task_runner->PostTask(FROM_HERE, base::BindOnce(std::move(callback), error));
 }
 
 // Clears the disk_cache::Backend on the IO thread and deletes |backend|.
@@ -37,24 +37,19 @@ void DoomHttpCache(std::unique_ptr<disk_cache::Backend*> backend,
                    const scoped_refptr<base::TaskRunner>& client_task_runner,
                    const base::Time& delete_begin,
                    const base::Time& delete_end,
-                   net::CompletionOnceCallback callback,
+                   const net::CompletionRepeatingCallback& callback,
                    int error) {
   // |*backend| may be null in case of error.
   if (*backend) {
-    net::CompletionRepeatingCallback copyable_callback =
-        base::AdaptCallbackForRepeating(std::move(callback));
     const int rv = (*backend)->DoomEntriesBetween(
         delete_begin, delete_end,
-        base::BindOnce(&PostCallback, client_task_runner, copyable_callback));
+        base::BindOnce(&PostCallback, client_task_runner, callback));
     // DoomEntriesBetween does not invoke callback unless rv is ERR_IO_PENDING.
     if (rv != net::ERR_IO_PENDING) {
-      DCHECK(copyable_callback);
-      client_task_runner->PostTask(FROM_HERE,
-                                   base::BindOnce(copyable_callback, rv));
+      client_task_runner->PostTask(FROM_HERE, base::BindOnce(callback, rv));
     }
   } else {
-    client_task_runner->PostTask(FROM_HERE,
-                                 base::BindOnce(std::move(callback), error));
+    client_task_runner->PostTask(FROM_HERE, base::BindOnce(callback, error));
   }
 }
 
