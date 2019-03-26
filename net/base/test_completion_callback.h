@@ -8,11 +8,12 @@
 #include <stdint.h>
 
 #include <memory>
+#include <utility>
 
 #include "base/callback.h"
 #include "base/compiler_specific.h"
 #include "base/macros.h"
-#include "net/base/completion_callback.h"
+#include "net/base/completion_once_callback.h"
 #include "net/base/net_errors.h"
 
 //-----------------------------------------------------------------------------
@@ -119,10 +120,10 @@ class TestCompletionCallback : public TestCompletionCallbackBase {
   TestCompletionCallback();
   ~TestCompletionCallback() override;
 
-  const CompletionCallback& callback() const { return callback_; }
+  CompletionOnceCallback callback() { return std::move(callback_); }
 
  private:
-  const CompletionCallback callback_;
+  CompletionOnceCallback callback_;
 
   DISALLOW_COPY_AND_ASSIGN(TestCompletionCallback);
 };
@@ -132,10 +133,10 @@ class TestInt64CompletionCallback : public TestInt64CompletionCallbackBase {
   TestInt64CompletionCallback();
   ~TestInt64CompletionCallback() override;
 
-  const Int64CompletionCallback& callback() const { return callback_; }
+  Int64CompletionOnceCallback callback() { return std::move(callback_); }
 
  private:
-  const Int64CompletionCallback callback_;
+  Int64CompletionOnceCallback callback_;
 
   DISALLOW_COPY_AND_ASSIGN(TestInt64CompletionCallback);
 };

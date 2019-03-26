@@ -47,16 +47,14 @@ TestClosure::TestClosure()
 TestClosure::~TestClosure() = default;
 
 TestCompletionCallback::TestCompletionCallback()
-    : callback_(base::Bind(&TestCompletionCallback::SetResult,
-                           base::Unretained(this))) {
-}
+    : callback_(base::BindOnce(&TestCompletionCallback::SetResult,
+                               base::Unretained(this))) {}
 
 TestCompletionCallback::~TestCompletionCallback() = default;
 
 TestInt64CompletionCallback::TestInt64CompletionCallback()
-    : callback_(base::Bind(&TestInt64CompletionCallback::SetResult,
-                           base::Unretained(this))) {
-}
+    : callback_(base::BindOnce(&TestInt64CompletionCallback::SetResult,
+                               base::Unretained(this))) {}
 
 TestInt64CompletionCallback::~TestInt64CompletionCallback() = default;
 

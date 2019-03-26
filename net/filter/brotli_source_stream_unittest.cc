@@ -55,7 +55,7 @@ class BrotliSourceStreamTest : public PlatformTest {
     brotli_stream_ = CreateBrotliSourceStream(std::move(source));
   }
 
-  int ReadStream(const TestCompletionCallback& callback) {
+  int ReadStream(TestCompletionCallback& callback) {
     return brotli_stream_->Read(out_buffer(), out_data_size(),
                                 callback.callback());
   }
