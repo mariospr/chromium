@@ -1135,10 +1135,8 @@ void BlinkAXTreeSource::SerializeNode(WebAXObject src,
 
     // Frames and iframes.
     WebFrame* frame = WebFrame::FromFrameOwnerElement(element);
-    if (frame) {
-      dst->AddContentIntAttribute(AX_CONTENT_ATTR_CHILD_ROUTING_ID,
-                                  RenderFrame::GetRoutingIdForWebFrame(frame));
-    }
+    if (frame)
+      dst->child_routing_id = RenderFrame::GetRoutingIdForWebFrame(frame);
   }
 
   // Add the ids of *indirect* children - those who are children of this node,
