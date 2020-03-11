@@ -472,6 +472,8 @@ mojom("mojo_bindings") {
     "widget.mojom",
   ]
 
+  cpp_typemaps = [ ":ax_content_typemap" ]
+
   enabled_features = []
   if (enable_ipc_logging) {
     enabled_features += [ "ipc_logging" ]
@@ -562,4 +564,42 @@ if (is_mac) {
 
     sources = [ _file ]
   }
+}
+
+mojom_cpp_typemap("ax_content_typemap") {
+  types = [
+    {
+      mojom = "ax.mojom.AXContentNodeData"
+      cpp = "::content::AXContentNodeData"
+    },
+    {
+      mojom = "ax.mojom.AXContentTreeData"
+      cpp = "::content::AXContentTreeData"
+    },
+    {
+      mojom = "ax.mojom.AXContentTreeUpdate"
+      cpp = "::content::AXContentTreeUpdate"
+    },
+  ]
+
+  public_headers = [
+    "ax_content_node_data_mojom_traits.h",
+    "ax_content_tree_data_mojom_traits.h",
+    "ax_content_tree_update_mojom_traits.h",
+  ]
+
+  traits_sources = [
+    "ax_content_node_data_mojom_traits.cc",
+    "ax_content_node_data_mojom_traits.h",
+    "ax_content_tree_data_mojom_traits.cc",
+    "ax_content_tree_data_mojom_traits.h",
+    "ax_content_tree_update_mojom_traits.cc",
+    "ax_content_tree_update_mojom_traits.h",
+  ]
+
+  traits_public_deps = [
+    ":common",
+    ":mojo_bindings_shared_cpp_sources",
+    "//ui/accessibility/mojom:mojom",
+  ]
 }

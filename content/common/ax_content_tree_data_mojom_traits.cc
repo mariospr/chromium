@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 #include "content/common/ax_content_tree_data_mojom_traits.h"
-#include "ui/accessibility/ax_tree_data.h"
 #include "ui/accessibility/mojom/ax_tree_data_mojom_traits.h"
 
 namespace mojo {
