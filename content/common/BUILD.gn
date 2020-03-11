@@ -54,8 +54,6 @@ source_set("common") {
     "android/use_zoom_for_dsf_policy_android.cc",
     "appcache_interfaces.cc",
     "appcache_interfaces.h",
-    "ax_content_node_data.cc",
-    "ax_content_node_data.h",
     "background_fetch/background_fetch_types.cc",
     "background_fetch/background_fetch_types.h",
     "browser_plugin/browser_plugin_constants.cc",
@@ -224,6 +222,7 @@ source_set("common") {
   ]
 
   public_deps = [
+    ":ax_content_node_data",
     ":mojo_bindings",
     "//cc",
     "//cc/ipc",
@@ -419,6 +418,26 @@ source_set("common") {
   }
 }
 
+source_set("ax_content_node_data") {
+  sources = [
+    "ax_content_node_data.cc",
+    "ax_content_node_data.h",
+  ]
+
+  public_deps = [
+    "//content:export",
+    "//ipc",
+    "//ui/accessibility",
+  ]
+
+  deps = [
+    ":buildflags",
+    ":mojo_bindings__generator",
+    "//base",
+    "//ipc",
+  ]
+}
+
 # See comment at the top of //content/BUILD.gn for how this works.
 group("for_content_tests") {
   visibility = [ "//content/test/*" ]
@@ -598,7 +617,7 @@ mojom_cpp_typemap("ax_content_typemap") {
   ]
 
   traits_public_deps = [
-    ":common",
+    ":ax_content_node_data",
     ":mojo_bindings_shared_cpp_sources",
     "//ui/accessibility/mojom:mojom",
   ]

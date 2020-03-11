@@ -1134,6 +1134,7 @@ test("content_browsertests") {
     "//content/browser/background_sync:background_sync_proto",
     "//content/browser/resources/media:media_internals_resources_grit",
     "//content/child:for_content_tests",
+    "//content/common:ax_content_node_data",
     "//content/gpu",
     "//content/public/browser",
     "//content/public/child",
